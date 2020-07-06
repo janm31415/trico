@@ -1,0 +1,2 @@
+# trico
+Lossless mesh compression

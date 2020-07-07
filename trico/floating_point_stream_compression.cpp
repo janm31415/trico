@@ -4,6 +4,9 @@
 
 namespace trico
   {
+
+#define HASH_SIZE 1 << 12
+
   /*
   High Throughput Compression of Double-Precision Floating-Point Data.  Martin Burtscher and Paruj Ratanaworabhan.
 
@@ -47,6 +50,13 @@ namespace trico
           }
         }
       }
+
+    inline uint32_t compute_hash(uint32_t hash, uint32_t value, uint32_t hash_size)
+      {
+      //return ((hash << 3) ^ (value >> 23)) & (hash_size - 1);
+      //return ((hash << 2) ^ (value)) & (hash_size - 1);
+      return (value) & (hash_size - 1);
+      }
     }
 
   void compress(uint32_t* nr_of_compressed_bytes, uint8_t** out, const float* input, const uint32_t number_of_floats)
@@ -54,7 +64,7 @@ namespace trico
     uint32_t max_size = (number_of_floats + 3) * sizeof(float) + (number_of_floats + 3) / 4; // theoretical maximum
     *out = (uint8_t*)trico_malloc(max_size);
 
-    uint32_t hash_size = 1 << 12;
+    uint32_t hash_size = HASH_SIZE;
     uint32_t* hash_table = (uint32_t*)calloc(hash_size, 4);
 
     uint32_t value;
@@ -76,7 +86,8 @@ namespace trico
       value = *reinterpret_cast<const uint32_t*>(input++);
       xor[j] = value ^ prediction;
       hash_table[hash] = value;
-      hash = ((hash << 3) & (value >> 23)) & (hash_size - 1);
+      //hash = ((hash << 3) ^ (value >> 23)) & (hash_size - 1);
+      hash = compute_hash(hash, value, hash_size);
       prediction = hash_table[hash];
       bcode[j] = 3; // 4 bytes
       if (0 == (xor[j] >> 24))
@@ -107,7 +118,7 @@ namespace trico
 
   void decompress(uint32_t* number_of_floats, float** out, const uint8_t* compressed)
     {
-    uint32_t hash_size = 1 << 12;
+    uint32_t hash_size = HASH_SIZE;
     uint32_t* hash_table = (uint32_t*)calloc(hash_size, 4);
 
     *number_of_floats = ((uint32_t)(*compressed++)) << 24;
@@ -164,7 +175,8 @@ namespace trico
         {
         value = xor[j] ^ prediction;
         hash_table[hash] = value;
-        hash = ((hash << 3) & (value >> 23)) & (hash_size - 1);
+        //hash = ((hash << 3) ^ (value >> 23)) & (hash_size - 1);
+        hash = compute_hash(hash, value, hash_size);
         prediction = hash_table[hash];
         *p_out++ = value;
         }
@@ -211,7 +223,8 @@ namespace trico
         {
         value = xor[j] ^ prediction;
         hash_table[hash] = value;
-        hash = ((hash << 3) & (value >> 23)) & (hash_size - 1);
+        //hash = ((hash << 3) ^ (value >> 23)) & (hash_size - 1);
+        hash = compute_hash(hash, value, hash_size);
         prediction = hash_table[hash];
         *p_out++ = value;
         }

@@ -107,10 +107,10 @@ namespace trico
     //TEST_EQ(115586, nr_of_compressed_y_bytes);
     //TEST_EQ(125249, nr_of_compressed_z_bytes);
 
-    std::cout << "Compression ratio for x: " << (float)nr_of_compressed_x_bytes / ((float)nr_of_vertices*4.f) << "\n";
-    std::cout << "Compression ratio for y: " << (float)nr_of_compressed_y_bytes / ((float)nr_of_vertices*4.f) << "\n";
-    std::cout << "Compression ratio for z: " << (float)nr_of_compressed_z_bytes / ((float)nr_of_vertices*4.f) << "\n";
-    std::cout << "Total compression ratio: " << (float)(nr_of_compressed_x_bytes + nr_of_compressed_y_bytes + nr_of_compressed_z_bytes) / ((float)nr_of_vertices*12.f) << "\n";
+    std::cout << "Compression ratio for x: " << ((float)nr_of_vertices*4.f) /(float)nr_of_compressed_x_bytes << "\n";
+    std::cout << "Compression ratio for y: " << ((float)nr_of_vertices*4.f) /(float)nr_of_compressed_y_bytes << "\n";
+    std::cout << "Compression ratio for z: " << ((float)nr_of_vertices*4.f) /(float)nr_of_compressed_z_bytes << "\n";
+    std::cout << "Total compression ratio: " << ((float)nr_of_vertices*12.f) /(float)(nr_of_compressed_x_bytes + nr_of_compressed_y_bytes + nr_of_compressed_z_bytes) << "\n";
 
     trico_free(decompressed_x);
     trico_free(compressed_x);

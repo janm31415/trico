@@ -8,18 +8,20 @@
 
 #include <zlib/zlib.h>
 
+#include <lz4/lz4.h>
+
 #include <iostream>
 
 namespace trico
   {
-  void transpose_aos_to_soa_standford_bunny()
+  void transpose_aos_to_soa_standford_bunny(const char* filename)
     {
     uint32_t nr_of_vertices;
     float* vertices;
     uint32_t nr_of_triangles;
     uint32_t* triangles;
 
-    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, "data/StanfordBunny.stl"));
+    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
     float* x;
     float* y;
@@ -53,7 +55,7 @@ namespace trico
     trico_free(triangles);
     }
 
-  void compress_vertices_standford_bunny()
+  void compress_vertices_standford_bunny(const char* filename)
     {
 
     uint32_t nr_of_vertices;
@@ -61,8 +63,7 @@ namespace trico
     uint32_t nr_of_triangles;
     uint32_t* triangles;
 
-    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, "data/StanfordBunny.stl"));
-    //TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, "D:/stl/kouros.stl"));
+    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));    
     float* x;
     float* y;
     float* z;
@@ -110,10 +111,10 @@ namespace trico
     //TEST_EQ(115586, nr_of_compressed_y_bytes);
     //TEST_EQ(125249, nr_of_compressed_z_bytes);
 
-    std::cout << "Compression ratio for x: " << ((float)nr_of_vertices*4.f) /(float)nr_of_compressed_x_bytes << "\n";
-    std::cout << "Compression ratio for y: " << ((float)nr_of_vertices*4.f) /(float)nr_of_compressed_y_bytes << "\n";
-    std::cout << "Compression ratio for z: " << ((float)nr_of_vertices*4.f) /(float)nr_of_compressed_z_bytes << "\n";
-    std::cout << "Total compression ratio: " << ((float)nr_of_vertices*12.f) /(float)(nr_of_compressed_x_bytes + nr_of_compressed_y_bytes + nr_of_compressed_z_bytes) << "\n";
+    std::cout << "Compression ratio for x: " << ((float)nr_of_vertices*4.f) / (float)nr_of_compressed_x_bytes << "\n";
+    std::cout << "Compression ratio for y: " << ((float)nr_of_vertices*4.f) / (float)nr_of_compressed_y_bytes << "\n";
+    std::cout << "Compression ratio for z: " << ((float)nr_of_vertices*4.f) / (float)nr_of_compressed_z_bytes << "\n";
+    std::cout << "Total compression ratio: " << ((float)nr_of_vertices*12.f) / (float)(nr_of_compressed_x_bytes + nr_of_compressed_y_bytes + nr_of_compressed_z_bytes) << "\n";
 
     trico_free(decompressed_x);
     trico_free(compressed_x);
@@ -128,27 +129,26 @@ namespace trico
     trico_free(triangles);
     }
 
-  void compress_vertices_standford_bunny_no_swizzling()
+  void compress_vertices_standford_bunny_no_swizzling(const char* filename)
     {
 
     uint32_t nr_of_vertices;
     float* vertices;
     uint32_t nr_of_triangles;
     uint32_t* triangles;
-
-    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, "data/StanfordBunny.stl"));
-    //TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, "D:/stl/kouros.stl"));
     
+    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+
 
     uint32_t nr_of_compressed_bytes;
     uint8_t* compressed;
-    compress(&nr_of_compressed_bytes, &compressed, vertices, nr_of_vertices*3);
+    compress(&nr_of_compressed_bytes, &compressed, vertices, nr_of_vertices * 3);
 
     uint32_t nr_of_floats;
     float* decompressed;
     decompress(&nr_of_floats, &decompressed, compressed);
 
-    TEST_EQ(nr_of_vertices*3, nr_of_floats);
+    TEST_EQ(nr_of_vertices * 3, nr_of_floats);
 
     for (uint32_t i = 0; i < nr_of_floats; ++i)
       TEST_EQ(vertices[i], decompressed[i]);
@@ -161,16 +161,15 @@ namespace trico
     trico_free(triangles);
     }
 
-  void compress_vertices_standford_bunny_zlib()
+  void compress_vertices_standford_bunny_zlib(const char* filename)
     {
 
     uint32_t nr_of_vertices;
     float* vertices;
     uint32_t nr_of_triangles;
     uint32_t* triangles;
-
-    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, "data/StanfordBunny.stl"));
-    //TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, "D:/stl/kouros.stl"));
+    
+    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
     float* x;
     float* y;
     float* z;
@@ -181,7 +180,7 @@ namespace trico
     defstream.zalloc = 0;
     defstream.zfree = 0;
     defstream.next_in = (uint8_t*)x;
-    defstream.avail_in = nr_of_vertices*sizeof(float);
+    defstream.avail_in = nr_of_vertices * sizeof(float);
     defstream.next_out = 0;
     defstream.avail_out = 0;
 
@@ -274,12 +273,91 @@ namespace trico
       delete[] compressed_buf;
       }
 
+    trico_free(x);
+    trico_free(y);
+    trico_free(z);
+    trico_free(vertices);
+    trico_free(triangles);
+    }
 
-    //std::cout << "Compression ratio for x: " << ((float)nr_of_vertices*4.f) / (float)nr_of_compressed_x_bytes << "\n";
-    //std::cout << "Compression ratio for y: " << ((float)nr_of_vertices*4.f) / (float)nr_of_compressed_y_bytes << "\n";
-    //std::cout << "Compression ratio for z: " << ((float)nr_of_vertices*4.f) / (float)nr_of_compressed_z_bytes << "\n";
-    //std::cout << "Total compression ratio: " << ((float)nr_of_vertices*12.f) / (float)(nr_of_compressed_x_bytes + nr_of_compressed_y_bytes + nr_of_compressed_z_bytes) << "\n";
 
+
+  void compress_vertices_standford_bunny_lz4(const char* filename)
+    {
+
+    uint32_t nr_of_vertices;
+    float* vertices;
+    uint32_t nr_of_triangles;
+    uint32_t* triangles;
+    
+    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+    float* x;
+    float* y;
+    float* z;
+
+    transpose_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
+    uint32_t total_length = 0;
+    {
+    LZ4_stream_t lz4Stream_body;
+    LZ4_stream_t* lz4Stream = &lz4Stream_body;
+    LZ4_initStream(lz4Stream, sizeof(*lz4Stream));
+
+    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_vertices * sizeof(float));
+    uint8_t* compressed_buf = new uint8_t[estimateLen];
+    
+    int bytes_written = LZ4_compress_default((const char*)x, (char*)compressed_buf, nr_of_vertices * sizeof(float), estimateLen);
+    total_length += bytes_written;
+    std::cout << "Compression ratio lz4 for x: " << ((float)nr_of_vertices*4.f) / (float)bytes_written << "\n";
+
+    delete[] compressed_buf;
+    }
+
+    {
+    LZ4_stream_t lz4Stream_body;
+    LZ4_stream_t* lz4Stream = &lz4Stream_body;
+    LZ4_initStream(lz4Stream, sizeof(*lz4Stream));
+
+    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_vertices * sizeof(float));
+    uint8_t* compressed_buf = new uint8_t[estimateLen];
+    
+    int bytes_written = LZ4_compress_default((const char*)y, (char*)compressed_buf, nr_of_vertices * sizeof(float), estimateLen);
+    total_length += bytes_written;
+    std::cout << "Compression ratio lz4 for y: " << ((float)nr_of_vertices*4.f) / (float)bytes_written << "\n";
+
+    delete[] compressed_buf;
+    }
+
+    {
+    LZ4_stream_t lz4Stream_body;
+    LZ4_stream_t* lz4Stream = &lz4Stream_body;
+    LZ4_initStream(lz4Stream, sizeof(*lz4Stream));
+
+    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_vertices * sizeof(float));
+    uint8_t* compressed_buf = new uint8_t[estimateLen];
+    
+    int bytes_written = LZ4_compress_default((const char*)z, (char*)compressed_buf, nr_of_vertices * sizeof(float), estimateLen);
+    total_length += bytes_written;
+    std::cout << "Compression ratio lz4 for z: " << ((float)nr_of_vertices*4.f) / (float)bytes_written << "\n";
+
+    delete[] compressed_buf;
+    }
+
+    std::cout << "Compression ratio lz4 total: " << ((float)nr_of_vertices*12.f) / (float)total_length << "\n";
+
+    {
+    LZ4_stream_t lz4Stream_body;
+    LZ4_stream_t* lz4Stream = &lz4Stream_body;
+    LZ4_initStream(lz4Stream, sizeof(*lz4Stream));
+
+    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_vertices * 3 * sizeof(float));
+    uint8_t* compressed_buf = new uint8_t[estimateLen];
+    
+    int bytes_written = LZ4_compress_default((const char*)vertices, (char*)compressed_buf, 3 * nr_of_vertices * sizeof(float), estimateLen);
+
+    std::cout << "Compression ratio lz4 for vertices: " << ((float)nr_of_vertices*12.f) / (float)bytes_written << "\n";
+
+    delete[] compressed_buf;
+    }    
 
     trico_free(x);
     trico_free(y);
@@ -287,13 +365,25 @@ namespace trico
     trico_free(vertices);
     trico_free(triangles);
     }
+
+  void test_compression(const char* filename)
+    {
+    transpose_aos_to_soa_standford_bunny(filename);
+    compress_vertices_standford_bunny(filename);
+    compress_vertices_standford_bunny_no_swizzling(filename);
+    compress_vertices_standford_bunny_zlib(filename);
+    compress_vertices_standford_bunny_lz4(filename);
+    }
   }
 
 void run_all_fps_compression_tests()
   {
   using namespace trico;
-  transpose_aos_to_soa_standford_bunny();
-  compress_vertices_standford_bunny();
-  compress_vertices_standford_bunny_no_swizzling();
-  compress_vertices_standford_bunny_zlib();
+  //test_compression("data/StanfordBunny.stl");
+  //test_compression("D:/stl/dino.stl");
+  //test_compression("D:/stl/bad.stl");
+  //test_compression("D:/stl/horned_sea_star.stl");
+  test_compression("D:/stl/core.stl");
+  //test_compression("D:/stl/pega.stl");
+  //test_compression("D:/stl/Aston Martin DB9 sell.stl");
   }

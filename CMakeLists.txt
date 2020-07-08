@@ -15,6 +15,7 @@ set(TRICO_VECTOR_INTRINSICS "avx2" CACHE STRING  "Choose vector intrinsics: none
 set_property(CACHE TRICO_VECTOR_INTRINSICS PROPERTY STRINGS none sse2 avx2)
 message(STATUS "TRICO_VECTOR_INTRINSICS='${TRICO_VECTOR_INTRINSICS}'")
 
+add_subdirectory(lz4)
 add_subdirectory(trico)
 add_subdirectory(trico.tests)
 add_subdirectory(zlib)

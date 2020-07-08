@@ -13,7 +13,8 @@ namespace trico
 //#define DFCM
 
   /*
-  High Throughput Compression of Double-Precision Floating-Point Data.  Martin Burtscher and Paruj Ratanaworabhan.
+  High Throughput Compression of Double-Precision Floating-Point Data.
+  Martin Burtscher and Paruj Ratanaworabhan.
 
   Adapted to 32-bit floating point values.
   */

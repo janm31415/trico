@@ -70,6 +70,7 @@ target_link_libraries(trico.tests
     PRIVATE
     trico
     zlib
+    lz4
     )	
     
 add_custom_command(TARGET trico.tests POST_BUILD 

@@ -368,22 +368,25 @@ namespace trico
 
   void test_compression(const char* filename)
     {
+    std::cout << "Tests for file " << filename << "\n";
     transpose_aos_to_soa_standford_bunny(filename);
     compress_vertices_standford_bunny(filename);
     compress_vertices_standford_bunny_no_swizzling(filename);
     compress_vertices_standford_bunny_zlib(filename);
     compress_vertices_standford_bunny_lz4(filename);
+    std::cout << "********************************************\n";
     }
   }
 
 void run_all_fps_compression_tests()
   {
   using namespace trico;
-  //test_compression("data/StanfordBunny.stl");
-  //test_compression("D:/stl/dino.stl");
-  //test_compression("D:/stl/bad.stl");
+  test_compression("data/StanfordBunny.stl");
+  test_compression("D:/stl/dino.stl");
+  test_compression("D:/stl/bad.stl");
   //test_compression("D:/stl/horned_sea_star.stl");
   test_compression("D:/stl/core.stl");
-  //test_compression("D:/stl/pega.stl");
-  //test_compression("D:/stl/Aston Martin DB9 sell.stl");
+  test_compression("D:/stl/pega.stl");
+  //test_compression("D:/stl/kouros.stl");
+  test_compression("D:/stl/Aston Martin DB9 sell.stl");
   }

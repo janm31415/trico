@@ -69,6 +69,7 @@ target_include_directories(trico.tests
 target_link_libraries(trico.tests
     PRIVATE
     trico
+    zlib
     )	
     
 add_custom_command(TARGET trico.tests POST_BUILD 

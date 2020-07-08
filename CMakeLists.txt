@@ -17,6 +17,6 @@ message(STATUS "TRICO_VECTOR_INTRINSICS='${TRICO_VECTOR_INTRINSICS}'")
 
 add_subdirectory(trico)
 add_subdirectory(trico.tests)
-
+add_subdirectory(zlib)
 
 

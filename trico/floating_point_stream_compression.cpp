@@ -5,7 +5,10 @@
 namespace trico
   {
 
-#define HASH_SIZE 1 << 12
+#define HASH_SIZE_EXPONENT 18
+#define HASH_SIZE (1 << HASH_SIZE_EXPONENT)
+#define HASH_MASK (HASH_SIZE - 1)
+
 
 //#define DFCM
 
@@ -55,16 +58,19 @@ namespace trico
         }
       }
 
-    inline uint32_t compute_hash(uint32_t hash, uint32_t value, uint32_t hash_size)
+    inline uint32_t compute_hash(uint32_t hash, uint32_t value)
       {
-      return ((hash << 6) ^ (value >> 23)) & (hash_size - 1);
+      return ((value >> (32 - HASH_SIZE_EXPONENT))) & HASH_MASK;
+      //return ( (hash << 8) ^ (value >> (32- HASH_SIZE_EXPONENT))) & HASH_MASK;
+      //return ((hash << 6) ^ (value >> 23)) & (hash_size - 1);
       //return ((hash << 2) ^ (value)) & (hash_size - 1);
       //return (value) & (hash_size - 1);
       }
 
-    inline uint32_t compute_hash_dfcm(uint32_t hash, uint32_t stride, uint32_t hash_size)
+    inline uint32_t compute_hash_dfcm(uint32_t hash, uint32_t stride)
       {
-      return ((hash << 2) ^ (stride >> 24)) & (hash_size - 1);
+      //return ((hash << 2) ^ (stride >> 24)) & (hash_size - 1);
+      return (stride >> (32 - HASH_SIZE_EXPONENT)) & HASH_MASK;
       }
     }
 
@@ -73,8 +79,7 @@ namespace trico
     uint32_t max_size = (number_of_floats + 3) * sizeof(float) + (number_of_floats + 3) / 4; // theoretical maximum
     *out = (uint8_t*)trico_malloc(max_size);
 
-    const uint32_t hash_size = HASH_SIZE;
-    uint32_t* hash_table = (uint32_t*)calloc(hash_size, 4);
+    uint32_t* hash_table = (uint32_t*)calloc(HASH_SIZE, 4);
     
     uint32_t value;
 #ifdef DFCM
@@ -108,11 +113,11 @@ namespace trico
       xor[j] = value ^ (last_value + prediction);
       last_value = value;
       hash_table[hash] = stride;
-      hash = compute_hash_dfcm(hash, stride, hash_size);
+      hash = compute_hash_dfcm(hash, stride);
 #else
       xor[j] = value ^ prediction;
       hash_table[hash] = value;
-      hash = compute_hash(hash, value, hash_size);
+      hash = compute_hash(hash, value);
 #endif
       prediction = hash_table[hash];
       bcode[j] = 3; // 4 bytes
@@ -165,8 +170,7 @@ namespace trico
 
   void decompress(uint32_t* number_of_floats, float** out, const uint8_t* compressed)
     {
-    const uint32_t hash_size = HASH_SIZE;
-    uint32_t* hash_table = (uint32_t*)calloc(hash_size, 4);
+    uint32_t* hash_table = (uint32_t*)calloc(HASH_SIZE, 4);
 
     *number_of_floats = ((uint32_t)(*compressed++)) << 24;
     *number_of_floats |= ((uint32_t)(*compressed++)) << 16;
@@ -229,11 +233,11 @@ namespace trico
         stride = value - last_value;
         last_value = value;
         hash_table[hash] = stride;
-        hash = compute_hash_dfcm(hash, stride, hash_size);
+        hash = compute_hash_dfcm(hash, stride);
 #else
         value = xor[j] ^ prediction;
         hash_table[hash] = value;
-        hash = compute_hash(hash, value, hash_size);        
+        hash = compute_hash(hash, value);        
 #endif
         prediction = hash_table[hash];
         *p_out++ = value;
@@ -286,11 +290,11 @@ namespace trico
         stride = value - last_value;
         last_value = value;
         hash_table[hash] = stride;
-        hash = compute_hash_dfcm(hash, stride, hash_size);
+        hash = compute_hash_dfcm(hash, stride);
 #else
         value = xor[j] ^ prediction;
         hash_table[hash] = value;
-        hash = compute_hash(hash, value, hash_size);
+        hash = compute_hash(hash, value);
 #endif
         prediction = hash_table[hash];
         *p_out++ = value;

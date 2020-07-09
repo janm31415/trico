@@ -5,7 +5,7 @@
 namespace trico
   {
 
-#define HASH_SIZE_EXPONENT 4
+#define HASH_SIZE_EXPONENT 2
 #define HASH_SIZE (1 << HASH_SIZE_EXPONENT)
 #define HASH_MASK (HASH_SIZE - 1)
 
@@ -61,6 +61,7 @@ namespace trico
 
     inline uint32_t compute_hash(uint32_t hash, uint32_t value)
       {
+      //return ((hash << 1) ^ (value >> (32 - HASH_SIZE_EXPONENT))) & HASH_MASK;
       return ((value >> (32 - HASH_SIZE_EXPONENT))) & HASH_MASK;
       //return ( (hash << 8) ^ (value >> (32- HASH_SIZE_EXPONENT))) & HASH_MASK;
       //return ((hash << 6) ^ (value >> 23)) & (hash_size - 1);

@@ -389,4 +389,6 @@ void run_all_fps_compression_tests()
   test_compression("D:/stl/pega.stl");
   //test_compression("D:/stl/kouros.stl");
   test_compression("D:/stl/Aston Martin DB9 sell.stl");
+  test_compression("D:/stl/front-cover.stl");
+  test_compression("D:/stl/front.stl");
   }

@@ -263,7 +263,6 @@ namespace trico
           {
           xor[j] = ((uint32_t)(*compressed++)) << 8;
           xor[j] |= ((uint32_t)(*compressed++));
-          break;
           if (xor[j] == 0)
             max_j = j;
           break;

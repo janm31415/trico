@@ -5,10 +5,13 @@
 namespace trico
   {
 
-#define HASH_SIZE_EXPONENT 20
-#define HASH_SIZE (1 << HASH_SIZE_EXPONENT)
-#define HASH_MASK (HASH_SIZE - 1)
+#define HASH1_SIZE_EXPONENT 4
+#define HASH1_SIZE (1 << HASH1_SIZE_EXPONENT)
+#define HASH1_MASK (HASH1_SIZE - 1)
 
+#define HASH2_SIZE_EXPONENT 10
+#define HASH2_SIZE (1 << HASH2_SIZE_EXPONENT)
+#define HASH2_MASK (HASH2_SIZE - 1)
 
 
     /*
@@ -84,20 +87,27 @@ namespace trico
         }
       }
 
-    inline uint32_t compute_hash(uint32_t hash, uint32_t value)
+    inline uint32_t compute_hash1(uint32_t hash, uint32_t value)
       {
-      return ((value >> (32 - HASH_SIZE_EXPONENT))) & HASH_MASK;
+      return ((value >> (32 - HASH1_SIZE_EXPONENT))) & HASH1_MASK;
+      //return ((hash << 6) ^ (value >> 23)) & HASH1_MASK;
+      }
+
+    inline uint32_t compute_hash2(uint32_t hash, uint32_t value)
+      {
+      return ((value >> (32 - HASH2_SIZE_EXPONENT))) & HASH2_MASK;
+      //return ((hash << 6) ^ (value >> (32 - HASH2_SIZE_EXPONENT))) & HASH2_MASK;
       }
 
     }
 
   void compress_2(uint32_t* nr_of_compressed_bytes, uint8_t** out, const float* input, const uint32_t number_of_floats)
     {
-    uint32_t max_size = (number_of_floats) * sizeof(float) + 3*(number_of_floats + 7) / 8 ; // theoretical maximum
+    uint32_t max_size = (number_of_floats) * sizeof(float) + 3*(number_of_floats + 7) / 8 + (number_of_floats&7); // theoretical maximum
     *out = (uint8_t*)trico_malloc(max_size);
 
-    uint32_t* hash_table_1 = (uint32_t*)calloc(HASH_SIZE, 4);
-    uint32_t* hash_table_2 = (uint32_t*)calloc(HASH_SIZE, 4);
+    uint32_t* hash_table_1 = (uint32_t*)calloc(HASH1_SIZE, 4);
+    uint32_t* hash_table_2 = (uint32_t*)calloc(HASH2_SIZE, 4);
 
     uint32_t value;
     uint32_t stride;
@@ -124,14 +134,14 @@ namespace trico
 
       xor1[j] = value ^ prediction1;
       hash_table_1[hash1] = value;
-      hash1 = compute_hash(hash1, value);
+      hash1 = compute_hash1(hash1, value);
       prediction1 = hash_table_1[hash1];
 
       stride = value - last_value;
       xor2[j] = value ^ (last_value + prediction2);
       last_value = value;
       hash_table_2[hash2] = stride;
-      hash2 = compute_hash(hash2, stride);
+      hash2 = compute_hash2(hash2, stride);
       prediction2 = hash_table_2[hash2];
 
 
@@ -203,8 +213,8 @@ namespace trico
 
   void decompress_2(uint32_t* number_of_floats, float** out, const uint8_t* compressed)
     {
-    uint32_t* hash_table_1 = (uint32_t*)calloc(HASH_SIZE, 4);
-    uint32_t* hash_table_2 = (uint32_t*)calloc(HASH_SIZE, 4);
+    uint32_t* hash_table_1 = (uint32_t*)calloc(HASH1_SIZE, 4);
+    uint32_t* hash_table_2 = (uint32_t*)calloc(HASH2_SIZE, 4);
 
     *number_of_floats = ((uint32_t)(*compressed++)) << 24;
     *number_of_floats |= ((uint32_t)(*compressed++)) << 16;
@@ -295,12 +305,12 @@ namespace trico
         value = xor[j] ^ prediction1;
 
         hash_table_1[hash1] = value;
-        hash1 = compute_hash(hash1, value);
+        hash1 = compute_hash1(hash1, value);
         prediction1 = hash_table_1[hash1];
 
         stride = value - last_value;
         hash_table_2[hash2] = stride;
-        hash2 = compute_hash(hash2, stride);
+        hash2 = compute_hash2(hash2, stride);
         prediction2 = value + hash_table_2[hash2];
         last_value = value;
 
@@ -381,12 +391,12 @@ namespace trico
         value = xor[j] ^ prediction1;
 
         hash_table_1[hash1] = value;
-        hash1 = compute_hash(hash1, value);
+        hash1 = compute_hash1(hash1, value);
         prediction1 = hash_table_1[hash1];
 
         stride = value - last_value;
         hash_table_2[hash2] = stride;
-        hash2 = compute_hash(hash2, stride);
+        hash2 = compute_hash2(hash2, stride);
         prediction2 = value + hash_table_2[hash2];
         last_value = value;
 

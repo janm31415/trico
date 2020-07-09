@@ -6,6 +6,7 @@
 #include <trico/transpose_aos_to_soa.h>
 #include <trico/floating_point_stream_compression.h>
 #include <trico/floating_point_stream_compression_2.h>
+#include <trico/fpc.h>
 
 #include <zlib/zlib.h>
 
@@ -52,6 +53,89 @@ namespace trico
     trico_free(x);
     trico_free(y);
     trico_free(z);
+    trico_free(vertices);
+    trico_free(triangles);
+    }
+
+  void compress_fpc(const char* filename)
+    {
+    uint32_t nr_of_vertices;
+    float* vertices;
+    uint32_t nr_of_triangles;
+    uint32_t* triangles;
+
+    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+    float* x;
+    float* y;
+    float* z;
+
+    transpose_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
+
+    double* dx = (double*)trico_malloc(sizeof(double)*nr_of_vertices);
+    double* dy = (double*)trico_malloc(sizeof(double)*nr_of_vertices);
+    double* dz = (double*)trico_malloc(sizeof(double)*nr_of_vertices);
+
+    for (int i = 0; i < nr_of_vertices; ++i)
+      {
+      dx[i] = (double)x[i];
+      dy[i] = (double)y[i];
+      dz[i] = (double)z[i];
+      }
+
+    uint32_t nr_of_compressed_x_bytes;
+    uint8_t* compressed_x;
+    fpc_compress(&nr_of_compressed_x_bytes, &compressed_x, dx, nr_of_vertices);
+    
+    uint32_t nr_of_doubles;
+    double* decompressed_x;
+    fpc_decompress(&nr_of_doubles, &decompressed_x, compressed_x);
+
+    TEST_EQ(nr_of_vertices, nr_of_doubles);
+
+    for (uint32_t i = 0; i < nr_of_doubles; ++i)
+      TEST_EQ(dx[i], decompressed_x[i]);
+    
+    uint32_t nr_of_compressed_y_bytes;
+    uint8_t* compressed_y;
+    fpc_compress(&nr_of_compressed_y_bytes, &compressed_y, dy, nr_of_vertices);
+
+    double* decompressed_y;
+    fpc_decompress(&nr_of_doubles, &decompressed_y, compressed_y);
+
+    TEST_EQ(nr_of_vertices, nr_of_doubles);
+
+    for (uint32_t i = 0; i < nr_of_doubles; ++i)
+      TEST_EQ(dy[i], decompressed_y[i]);
+
+    uint32_t nr_of_compressed_z_bytes;
+    uint8_t* compressed_z;
+    fpc_compress(&nr_of_compressed_z_bytes, &compressed_z, dz, nr_of_vertices);
+
+    double* decompressed_z;
+    fpc_decompress(&nr_of_doubles, &decompressed_z, compressed_z);
+
+    TEST_EQ(nr_of_vertices, nr_of_doubles);
+
+    for (uint32_t i = 0; i < nr_of_doubles; ++i)
+      TEST_EQ(dz[i], decompressed_z[i]);
+
+    std::cout << "Compression ratio fpc for x: " << ((float)nr_of_vertices*8.f) / (float)nr_of_compressed_x_bytes << "\n";
+    std::cout << "Compression ratio fpc for y: " << ((float)nr_of_vertices*8.f) / (float)nr_of_compressed_y_bytes << "\n";
+    std::cout << "Compression ratio fpc for z: " << ((float)nr_of_vertices*8.f) / (float)nr_of_compressed_z_bytes << "\n";
+    std::cout << "Total compression ratio fpc: " << ((float)nr_of_vertices*24.f) / (float)(nr_of_compressed_x_bytes + nr_of_compressed_y_bytes + nr_of_compressed_z_bytes) << "\n";   
+    
+    trico_free(compressed_x);
+    trico_free(decompressed_x);
+    trico_free(decompressed_y);
+    trico_free(compressed_y);
+    trico_free(decompressed_z);
+    trico_free(compressed_z);
+    trico_free(x);
+    trico_free(y);
+    trico_free(z);
+    trico_free(dx);
+    trico_free(dy);
+    trico_free(dz);
     trico_free(vertices);
     trico_free(triangles);
     }
@@ -454,15 +538,24 @@ namespace trico
 void run_all_fps_compression_tests()
   {
   using namespace trico;
-  
+  /*
   test_compression("data/StanfordBunny.stl");
   test_compression("D:/stl/dino.stl");
   test_compression("D:/stl/bad.stl");
-  test_compression("D:/stl/horned_sea_star.stl");
+  //test_compression("D:/stl/horned_sea_star.stl");
   test_compression("D:/stl/core.stl");
   test_compression("D:/stl/pega.stl");
-  test_compression("D:/stl/kouros.stl");
+  //test_compression("D:/stl/kouros.stl");
   test_compression("D:/stl/Aston Martin DB9 sell.stl");
   test_compression("D:/stl/front-cover.stl");
   test_compression("D:/stl/front.stl");
+  test_compression("D:/stl/einstein.stl");
+  test_compression("D:/stl/ima_test_tank.stl");
+  test_compression("D:/stl/jan.stl");
+  test_compression("D:/stl/SKIWI.stl");
+  test_compression("D:/stl/wasp_bot.stl");
+  //test_compression("D:/stl/RobotRed.stl");
+  */
+
+  compress_fpc("data/StanfordBunny.stl");
   }

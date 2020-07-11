@@ -57,7 +57,7 @@ namespace trico
     trico_free(triangles);
     }
 
-  void compress_fpc(const char* filename)
+  void compress_vertices_fpc(const char* filename)
     {
     uint32_t nr_of_vertices;
     float* vertices;
@@ -124,6 +124,89 @@ namespace trico
     std::cout << "Compression ratio fpc for z: " << ((float)nr_of_vertices*8.f) / (float)nr_of_compressed_z_bytes << "\n";
     std::cout << "Total compression ratio fpc: " << ((float)nr_of_vertices*24.f) / (float)(nr_of_compressed_x_bytes + nr_of_compressed_y_bytes + nr_of_compressed_z_bytes) << "\n";   
     
+    trico_free(compressed_x);
+    trico_free(decompressed_x);
+    trico_free(decompressed_y);
+    trico_free(compressed_y);
+    trico_free(decompressed_z);
+    trico_free(compressed_z);
+    trico_free(x);
+    trico_free(y);
+    trico_free(z);
+    trico_free(dx);
+    trico_free(dy);
+    trico_free(dz);
+    trico_free(vertices);
+    trico_free(triangles);
+    }
+
+  void compress_vertices_double(const char* filename)
+    {
+    uint32_t nr_of_vertices;
+    float* vertices;
+    uint32_t nr_of_triangles;
+    uint32_t* triangles;
+
+    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+    float* x;
+    float* y;
+    float* z;
+
+    transpose_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
+
+    double* dx = (double*)trico_malloc(sizeof(double)*nr_of_vertices);
+    double* dy = (double*)trico_malloc(sizeof(double)*nr_of_vertices);
+    double* dz = (double*)trico_malloc(sizeof(double)*nr_of_vertices);
+
+    for (int i = 0; i < nr_of_vertices; ++i)
+      {
+      dx[i] = (double)x[i];
+      dy[i] = (double)y[i];
+      dz[i] = (double)z[i];
+      }
+
+    uint32_t nr_of_compressed_x_bytes;
+    uint8_t* compressed_x;
+    compress_2(&nr_of_compressed_x_bytes, &compressed_x, dx, nr_of_vertices);
+    
+    uint32_t nr_of_doubles;
+    double* decompressed_x;
+    decompress_2(&nr_of_doubles, &decompressed_x, compressed_x);
+
+    TEST_EQ(nr_of_vertices, nr_of_doubles);
+
+    for (uint32_t i = 0; i < nr_of_doubles; ++i)
+      TEST_EQ(dx[i], decompressed_x[i]);
+      
+    uint32_t nr_of_compressed_y_bytes;
+    uint8_t* compressed_y;
+    compress_2(&nr_of_compressed_y_bytes, &compressed_y, dy, nr_of_vertices);
+    
+    double* decompressed_y;
+    decompress_2(&nr_of_doubles, &decompressed_y, compressed_y);
+
+    TEST_EQ(nr_of_vertices, nr_of_doubles);
+
+    for (uint32_t i = 0; i < nr_of_doubles; ++i)
+      TEST_EQ(dy[i], decompressed_y[i]);
+      
+    uint32_t nr_of_compressed_z_bytes;
+    uint8_t* compressed_z;
+    compress_2(&nr_of_compressed_z_bytes, &compressed_z, dz, nr_of_vertices);
+    
+    double* decompressed_z;
+    decompress_2(&nr_of_doubles, &decompressed_z, compressed_z);
+
+    TEST_EQ(nr_of_vertices, nr_of_doubles);
+
+    for (uint32_t i = 0; i < nr_of_doubles; ++i)
+      TEST_EQ(dz[i], decompressed_z[i]);
+      
+    std::cout << "Compression ratio double for x: " << ((float)nr_of_vertices*8.f) / (float)nr_of_compressed_x_bytes << "\n";
+    std::cout << "Compression ratio double for y: " << ((float)nr_of_vertices*8.f) / (float)nr_of_compressed_y_bytes << "\n";
+    std::cout << "Compression ratio double for z: " << ((float)nr_of_vertices*8.f) / (float)nr_of_compressed_z_bytes << "\n";
+    std::cout << "Total compression ratio double: " << ((float)nr_of_vertices*24.f) / (float)(nr_of_compressed_x_bytes + nr_of_compressed_y_bytes + nr_of_compressed_z_bytes) << "\n";
+
     trico_free(compressed_x);
     trico_free(decompressed_x);
     trico_free(decompressed_y);
@@ -285,6 +368,121 @@ namespace trico
     trico_free(triangles);
     }
 
+  void compress_vertices_2_and_zlib(const char* filename)
+    {
+
+    uint32_t nr_of_vertices;
+    float* vertices;
+    uint32_t nr_of_triangles;
+    uint32_t* triangles;
+
+    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+    float* x;
+    float* y;
+    float* z;
+
+    transpose_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
+
+    uint32_t nr_of_compressed_x_bytes;
+    uint8_t* compressed_x;
+    compress_2(&nr_of_compressed_x_bytes, &compressed_x, x, nr_of_vertices);
+
+    z_stream defstream;
+    defstream.zalloc = 0;
+    defstream.zfree = 0;
+    defstream.next_in = (uint8_t*)compressed_x;
+    defstream.avail_in = nr_of_compressed_x_bytes;
+    defstream.next_out = 0;
+    defstream.avail_out = 0;
+
+    uint32_t total_length = 0;
+
+    if (deflateInit(&defstream, Z_BEST_COMPRESSION) == Z_OK)
+      {
+      auto estimateLen = deflateBound(&defstream, nr_of_compressed_x_bytes);
+      uint8_t* compressed_buf = new uint8_t[estimateLen];
+      defstream.next_out = compressed_buf;
+      defstream.avail_out = estimateLen;
+      deflate(&defstream, Z_FINISH);
+
+
+      std::streamsize length = (uint8_t*)defstream.next_out - compressed_buf;
+      total_length += length;
+      std::cout << "Compression ratio fpc2 + zlib for x: " << ((float)nr_of_vertices*4.f) / (float)length << "\n";
+
+      delete[] compressed_buf;
+      }
+    deflateEnd(&defstream);
+  
+
+    uint32_t nr_of_compressed_y_bytes;
+    uint8_t* compressed_y;
+    compress_2(&nr_of_compressed_y_bytes, &compressed_y, y, nr_of_vertices);
+
+    defstream.zalloc = 0;
+    defstream.zfree = 0;
+    defstream.next_in = (uint8_t*)compressed_y;
+    defstream.avail_in = nr_of_compressed_y_bytes;
+    defstream.next_out = 0;
+    defstream.avail_out = 0;
+
+    if (deflateInit(&defstream, Z_BEST_COMPRESSION) == Z_OK)
+      {
+      auto estimateLen = deflateBound(&defstream, nr_of_compressed_y_bytes);
+      uint8_t* compressed_buf = new uint8_t[estimateLen];
+      defstream.next_out = compressed_buf;
+      defstream.avail_out = estimateLen;
+      deflate(&defstream, Z_FINISH);
+
+
+      std::streamsize length = (uint8_t*)defstream.next_out - compressed_buf;
+      total_length += length;
+      std::cout << "Compression ratio fpc2 + zlib for y: " << ((float)nr_of_vertices*4.f) / (float)length << "\n";
+
+      delete[] compressed_buf;
+      }
+    deflateEnd(&defstream);
+
+    uint32_t nr_of_compressed_z_bytes;
+    uint8_t* compressed_z;
+    compress_2(&nr_of_compressed_z_bytes, &compressed_z, z, nr_of_vertices);
+
+    defstream.zalloc = 0;
+    defstream.zfree = 0;
+    defstream.next_in = (uint8_t*)compressed_z;
+    defstream.avail_in = nr_of_compressed_z_bytes;
+    defstream.next_out = 0;
+    defstream.avail_out = 0;
+
+    if (deflateInit(&defstream, Z_BEST_COMPRESSION) == Z_OK)
+      {
+      auto estimateLen = deflateBound(&defstream, nr_of_compressed_z_bytes);
+      uint8_t* compressed_buf = new uint8_t[estimateLen];
+      defstream.next_out = compressed_buf;
+      defstream.avail_out = estimateLen;
+      deflate(&defstream, Z_FINISH);
+
+
+      std::streamsize length = (uint8_t*)defstream.next_out - compressed_buf;
+      total_length += length;
+      std::cout << "Compression ratio fpc2 + zlib for z: " << ((float)nr_of_vertices*4.f) / (float)length << "\n";
+
+      delete[] compressed_buf;
+      }
+    deflateEnd(&defstream);
+
+    std::cout << "Total compression ratio: " << ((float)nr_of_vertices*12.f) / (float)(total_length) << "\n";
+
+    trico_free(compressed_x);
+    trico_free(compressed_y);
+    trico_free(compressed_z);
+    trico_free(x);
+    trico_free(y);
+    trico_free(z);
+    trico_free(vertices);
+    trico_free(triangles);
+    }
+
   void compress_vertices_no_swizzling(const char* filename)
     {
 
@@ -357,6 +555,7 @@ namespace trico
 
       delete[] compressed_buf;
       }
+    deflateEnd(&defstream);
 
     defstream.zalloc = 0;
     defstream.zfree = 0;
@@ -380,6 +579,7 @@ namespace trico
 
       delete[] compressed_buf;
       }
+    deflateEnd(&defstream);
 
     defstream.zalloc = 0;
     defstream.zfree = 0;
@@ -403,6 +603,7 @@ namespace trico
 
       delete[] compressed_buf;
       }
+    deflateEnd(&defstream);
 
     std::cout << "Compression ratio zlib total: " << ((float)nr_of_vertices*12.f) / (float)total_length << "\n";
 
@@ -428,6 +629,7 @@ namespace trico
 
       delete[] compressed_buf;
       }
+    deflateEnd(&defstream);
 
     trico_free(x);
     trico_free(y);
@@ -530,7 +732,16 @@ namespace trico
     compress_vertices_no_swizzling(filename);
     compress_vertices_2(filename);    
     compress_vertices_zlib(filename);
+    //compress_vertices_2_and_zlib(filename);
     compress_vertices_lz4(filename);
+    std::cout << "********************************************\n";
+    }
+
+  void test_compression_double(const char* filename)
+    {
+    std::cout << "Tests for file " << filename << "\n";   
+    compress_vertices_fpc(filename);
+    compress_vertices_double(filename);
     std::cout << "********************************************\n";
     }
   }
@@ -539,7 +750,7 @@ void run_all_fps_compression_tests()
   {
   using namespace trico;
   /*
-  test_compression("data/StanfordBunny.stl");
+  test_compression("data/StanfordBunny.stl");  
   test_compression("D:/stl/dino.stl");
   test_compression("D:/stl/bad.stl");
   //test_compression("D:/stl/horned_sea_star.stl");
@@ -553,9 +764,24 @@ void run_all_fps_compression_tests()
   test_compression("D:/stl/ima_test_tank.stl");
   test_compression("D:/stl/jan.stl");
   test_compression("D:/stl/SKIWI.stl");
-  test_compression("D:/stl/wasp_bot.stl");
+  test_compression("D:/stl/wasp_bot.stl");  
   //test_compression("D:/stl/RobotRed.stl");
   */
-
-  compress_fpc("data/StanfordBunny.stl");
+  test_compression_double("data/StanfordBunny.stl");  
+  /*
+  test_compression_double("D:/stl/dino.stl");
+  test_compression_double("D:/stl/bad.stl");
+  //test_compression_double("D:/stl/horned_sea_star.stl");
+  test_compression_double("D:/stl/core.stl");
+  test_compression_double("D:/stl/pega.stl");
+  //test_compression_double("D:/stl/kouros.stl");
+  test_compression_double("D:/stl/Aston Martin DB9 sell.stl");
+  test_compression_double("D:/stl/front-cover.stl");
+  test_compression_double("D:/stl/front.stl");
+  test_compression_double("D:/stl/einstein.stl");
+  test_compression_double("D:/stl/ima_test_tank.stl");
+  test_compression_double("D:/stl/jan.stl");
+  test_compression_double("D:/stl/SKIWI.stl");
+  test_compression_double("D:/stl/wasp_bot.stl");
+  //test_compression_double("D:/stl/RobotRed.stl");*/
   }

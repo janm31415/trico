@@ -6,7 +6,7 @@
 namespace trico
   {
 
-#define HASH_SIZE_EXPONENT 9
+#define HASH_SIZE_EXPONENT 16
 #define HASH_SIZE (1 << HASH_SIZE_EXPONENT)
 #define HASH_MASK (HASH_SIZE - 1)
 

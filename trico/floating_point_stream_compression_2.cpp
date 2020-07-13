@@ -15,11 +15,11 @@ namespace trico
 
 
 
-#define HASH1D_SIZE_EXPONENT 8
+#define HASH1D_SIZE_EXPONENT 16
 #define HASH1D_SIZE (1 << HASH1D_SIZE_EXPONENT)
 #define HASH1D_MASK (HASH1D_SIZE - 1)
 
-#define HASH2D_SIZE_EXPONENT 20
+#define HASH2D_SIZE_EXPONENT 16
 #define HASH2D_SIZE (1 << HASH2D_SIZE_EXPONENT)
 #define HASH2D_MASK (HASH2D_SIZE - 1)
 
@@ -570,12 +570,18 @@ namespace trico
 
     inline uint64_t compute_hash1(uint64_t hash, uint64_t value)
       {
-      return ((value >> (64 - HASH1D_SIZE_EXPONENT))) & HASH1D_MASK;
+      return ((hash << 10) ^ (value >> (64 - HASH1D_SIZE_EXPONENT))) & HASH1D_MASK;
+      //return ((hash << 6) ^ (value)) & HASH1D_MASK;
+      //return ((hash << 6) ^ (value >> 48)) & HASH1D_MASK;
+      //return ((hash<<4) ^ (value >> 48)) & HASH1D_MASK;
       }
 
     inline uint64_t compute_hash2(uint64_t hash, uint64_t value)
       {
-      return ((value >> (64 - HASH2D_SIZE_EXPONENT))) & HASH2D_MASK;
+      return ((hash << 5) ^ (value >> (64 - HASH2D_SIZE_EXPONENT))) & HASH2D_MASK;
+      //  ((dhash << 2) ^ ((unsigned long long)stride >> 40)) & HASH_MASK;
+      //return ((hash << 2) ^ (value)) & HASH2D_MASK;
+      //return ((hash<<4) ^ (value >> 40)) & HASH2D_MASK;
       }
     }
 

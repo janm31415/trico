@@ -767,14 +767,13 @@ void run_all_fps_compression_tests()
   test_compression("D:/stl/wasp_bot.stl");  
   //test_compression("D:/stl/RobotRed.stl");
   */
-  test_compression_double("data/StanfordBunny.stl");  
-  /*
+  test_compression_double("data/StanfordBunny.stl");    
   test_compression_double("D:/stl/dino.stl");
   test_compression_double("D:/stl/bad.stl");
-  //test_compression_double("D:/stl/horned_sea_star.stl");
+  test_compression_double("D:/stl/horned_sea_star.stl");
   test_compression_double("D:/stl/core.stl");
   test_compression_double("D:/stl/pega.stl");
-  //test_compression_double("D:/stl/kouros.stl");
+  test_compression_double("D:/stl/kouros.stl");
   test_compression_double("D:/stl/Aston Martin DB9 sell.stl");
   test_compression_double("D:/stl/front-cover.stl");
   test_compression_double("D:/stl/front.stl");
@@ -783,5 +782,5 @@ void run_all_fps_compression_tests()
   test_compression_double("D:/stl/jan.stl");
   test_compression_double("D:/stl/SKIWI.stl");
   test_compression_double("D:/stl/wasp_bot.stl");
-  //test_compression_double("D:/stl/RobotRed.stl");*/
+  test_compression_double("D:/stl/RobotRed.stl");
   }

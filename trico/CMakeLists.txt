@@ -2,8 +2,6 @@
 set(HDRS
 alloc.h
 floating_point_stream_compression.h
-floating_point_stream_compression_2.h
-fpc.h
 intrinsics.h
 iostl.h
 transpose_aos_to_soa.h
@@ -12,8 +10,6 @@ trico_api.h
 	
 set(SRCS
 floating_point_stream_compression.cpp
-floating_point_stream_compression_2.cpp
-fpc.cpp
 iostl.cpp
 transpose_aos_to_soa.cpp
 )

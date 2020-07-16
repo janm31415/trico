@@ -63,7 +63,7 @@ namespace trico
     uint8_t* b3;
     uint8_t* b4;
 
-    transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles);
+    transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles*3);
 
     uint32_t total_length = 0;
     {
@@ -71,12 +71,12 @@ namespace trico
     LZ4_stream_t* lz4Stream = &lz4Stream_body;
     LZ4_initStream(lz4Stream, sizeof(*lz4Stream));
 
-    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_triangles);
+    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_triangles * 3);
     uint8_t* compressed_buf = new uint8_t[estimateLen];
 
-    int bytes_written = LZ4_compress_default((const char*)b1, (char*)compressed_buf, (int)nr_of_triangles, (int)estimateLen);
+    int bytes_written = LZ4_compress_default((const char*)b1, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
     total_length += bytes_written;
-    std::cout << "Compression ratio lz4 for b1: " << ((float)nr_of_triangles) / (float)bytes_written << "\n";
+    std::cout << "Compression ratio lz4 for b1: " << ((float)nr_of_triangles * 3) / (float)bytes_written << "\n";
 
     delete[] compressed_buf;
     }
@@ -85,12 +85,12 @@ namespace trico
     LZ4_stream_t* lz4Stream = &lz4Stream_body;
     LZ4_initStream(lz4Stream, sizeof(*lz4Stream));
 
-    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_triangles);
+    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_triangles * 3);
     uint8_t* compressed_buf = new uint8_t[estimateLen];
 
-    int bytes_written = LZ4_compress_default((const char*)b2, (char*)compressed_buf, (int)nr_of_triangles, (int)estimateLen);
+    int bytes_written = LZ4_compress_default((const char*)b2, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
     total_length += bytes_written;
-    std::cout << "Compression ratio lz4 for b2: " << ((float)nr_of_triangles) / (float)bytes_written << "\n";
+    std::cout << "Compression ratio lz4 for b2: " << ((float)nr_of_triangles * 3) / (float)bytes_written << "\n";
 
     delete[] compressed_buf;
     }
@@ -99,12 +99,12 @@ namespace trico
     LZ4_stream_t* lz4Stream = &lz4Stream_body;
     LZ4_initStream(lz4Stream, sizeof(*lz4Stream));
 
-    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_triangles);
+    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_triangles * 3);
     uint8_t* compressed_buf = new uint8_t[estimateLen];
 
-    int bytes_written = LZ4_compress_default((const char*)b3, (char*)compressed_buf, (int)nr_of_triangles, (int)estimateLen);
+    int bytes_written = LZ4_compress_default((const char*)b3, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
     total_length += bytes_written;
-    std::cout << "Compression ratio lz4 for b3: " << ((float)nr_of_triangles) / (float)bytes_written << "\n";
+    std::cout << "Compression ratio lz4 for b3: " << ((float)nr_of_triangles * 3) / (float)bytes_written << "\n";
 
     delete[] compressed_buf;
     }
@@ -113,22 +113,22 @@ namespace trico
     LZ4_stream_t* lz4Stream = &lz4Stream_body;
     LZ4_initStream(lz4Stream, sizeof(*lz4Stream));
 
-    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_triangles);
+    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_triangles * 3);
     uint8_t* compressed_buf = new uint8_t[estimateLen];
 
-    int bytes_written = LZ4_compress_default((const char*)b4, (char*)compressed_buf, (int)nr_of_triangles, (int)estimateLen);
+    int bytes_written = LZ4_compress_default((const char*)b4, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
     total_length += bytes_written;
-    std::cout << "Compression ratio lz4 for b4: " << ((float)nr_of_triangles) / (float)bytes_written << "\n";
+    std::cout << "Compression ratio lz4 for b4: " << ((float)nr_of_triangles * 3) / (float)bytes_written << "\n";
 
     delete[] compressed_buf;
     }
 
-    std::cout << "Compression ratio lz4 total: " << ((float)nr_of_triangles*4.f) / (float)total_length << "\n";
+    std::cout << "Compression ratio lz4 total: " << ((float)nr_of_triangles*12.f) / (float)total_length << "\n";
 
 
     uint32_t* triangles_from_b1b2b3b4;
 
-    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles);
+    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles*3);
 
     trico_free(triangles_from_b1b2b3b4);
     trico_free(b1);
@@ -154,12 +154,12 @@ namespace trico
     LZ4_stream_t* lz4Stream = &lz4Stream_body;
     LZ4_initStream(lz4Stream, sizeof(*lz4Stream));
 
-    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_triangles * 4);
+    auto estimateLen = LZ4_COMPRESSBOUND(nr_of_triangles * 12);
     uint8_t* compressed_buf = new uint8_t[estimateLen];
 
-    int bytes_written = LZ4_compress_default((const char*)triangles, (char*)compressed_buf, (int)nr_of_triangles * 4, (int)estimateLen);
+    int bytes_written = LZ4_compress_default((const char*)triangles, (char*)compressed_buf, (int)nr_of_triangles * 12, (int)estimateLen);
     total_length += bytes_written;
-    std::cout << "Compression ratio lz4 for triangles unshuffled: " << ((float)nr_of_triangles * 4) / (float)bytes_written << "\n";
+    std::cout << "Compression ratio lz4 for triangles unshuffled: " << ((float)nr_of_triangles * 12) / (float)bytes_written << "\n";
 
     delete[] compressed_buf;
     }
@@ -182,20 +182,20 @@ namespace trico
     uint8_t* b3;
     uint8_t* b4;
 
-    transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles);
+    transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles*3);
 
     uint32_t total_length = 0;
     z_stream defstream;
     defstream.zalloc = 0;
     defstream.zfree = 0;
     defstream.next_in = (uint8_t*)b1;
-    defstream.avail_in = nr_of_triangles;
+    defstream.avail_in = nr_of_triangles * 3;
     defstream.next_out = 0;
     defstream.avail_out = 0;
 
     if (deflateInit(&defstream, Z_BEST_COMPRESSION) == Z_OK)
       {
-      auto estimateLen = deflateBound(&defstream, nr_of_triangles);
+      auto estimateLen = deflateBound(&defstream, nr_of_triangles * 3);
       uint8_t* compressed_buf = new uint8_t[estimateLen];
       defstream.next_out = compressed_buf;
       defstream.avail_out = estimateLen;
@@ -204,7 +204,7 @@ namespace trico
 
       std::streamsize length = (uint8_t*)defstream.next_out - compressed_buf;
       total_length += (uint32_t)length;
-      std::cout << "Compression ratio zlib for b1: " << ((float)nr_of_triangles) / (float)length << "\n";
+      std::cout << "Compression ratio zlib for b1: " << ((float)nr_of_triangles * 3) / (float)length << "\n";
 
       delete[] compressed_buf;
       }
@@ -213,13 +213,13 @@ namespace trico
     defstream.zalloc = 0;
     defstream.zfree = 0;
     defstream.next_in = (uint8_t*)b2;
-    defstream.avail_in = nr_of_triangles;
+    defstream.avail_in = nr_of_triangles * 3;
     defstream.next_out = 0;
     defstream.avail_out = 0;
 
     if (deflateInit(&defstream, Z_BEST_COMPRESSION) == Z_OK)
       {
-      auto estimateLen = deflateBound(&defstream, nr_of_triangles);
+      auto estimateLen = deflateBound(&defstream, nr_of_triangles * 3);
       uint8_t* compressed_buf = new uint8_t[estimateLen];
       defstream.next_out = compressed_buf;
       defstream.avail_out = estimateLen;
@@ -228,7 +228,7 @@ namespace trico
 
       std::streamsize length = (uint8_t*)defstream.next_out - compressed_buf;
       total_length += (uint32_t)length;
-      std::cout << "Compression ratio zlib for b2: " << ((float)nr_of_triangles) / (float)length << "\n";
+      std::cout << "Compression ratio zlib for b2: " << ((float)nr_of_triangles * 3) / (float)length << "\n";
 
       delete[] compressed_buf;
       }
@@ -237,13 +237,13 @@ namespace trico
     defstream.zalloc = 0;
     defstream.zfree = 0;
     defstream.next_in = (uint8_t*)b3;
-    defstream.avail_in = nr_of_triangles;
+    defstream.avail_in = nr_of_triangles * 3;
     defstream.next_out = 0;
     defstream.avail_out = 0;
 
     if (deflateInit(&defstream, Z_BEST_COMPRESSION) == Z_OK)
       {
-      auto estimateLen = deflateBound(&defstream, nr_of_triangles);
+      auto estimateLen = deflateBound(&defstream, nr_of_triangles * 3);
       uint8_t* compressed_buf = new uint8_t[estimateLen];
       defstream.next_out = compressed_buf;
       defstream.avail_out = estimateLen;
@@ -252,7 +252,7 @@ namespace trico
 
       std::streamsize length = (uint8_t*)defstream.next_out - compressed_buf;
       total_length += (uint32_t)length;
-      std::cout << "Compression ratio zlib for b3: " << ((float)nr_of_triangles) / (float)length << "\n";
+      std::cout << "Compression ratio zlib for b3: " << ((float)nr_of_triangles * 3) / (float)length << "\n";
 
       delete[] compressed_buf;
       }
@@ -261,13 +261,13 @@ namespace trico
     defstream.zalloc = 0;
     defstream.zfree = 0;
     defstream.next_in = (uint8_t*)b4;
-    defstream.avail_in = nr_of_triangles;
+    defstream.avail_in = nr_of_triangles * 3;
     defstream.next_out = 0;
     defstream.avail_out = 0;
 
     if (deflateInit(&defstream, Z_BEST_COMPRESSION) == Z_OK)
       {
-      auto estimateLen = deflateBound(&defstream, nr_of_triangles);
+      auto estimateLen = deflateBound(&defstream, nr_of_triangles * 3);
       uint8_t* compressed_buf = new uint8_t[estimateLen];
       defstream.next_out = compressed_buf;
       defstream.avail_out = estimateLen;
@@ -276,18 +276,18 @@ namespace trico
 
       std::streamsize length = (uint8_t*)defstream.next_out - compressed_buf;
       total_length += (uint32_t)length;
-      std::cout << "Compression ratio zlib for b4: " << ((float)nr_of_triangles) / (float)length << "\n";
+      std::cout << "Compression ratio zlib for b4: " << ((float)nr_of_triangles * 3) / (float)length << "\n";
 
       delete[] compressed_buf;
       }
     deflateEnd(&defstream);
 
-    std::cout << "Compression ratio zlib total: " << ((float)nr_of_triangles*4.f) / (float)total_length << "\n";
+    std::cout << "Compression ratio zlib total: " << ((float)nr_of_triangles*12.f) / (float)total_length << "\n";
 
 
     uint32_t* triangles_from_b1b2b3b4;
 
-    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles);
+    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles*3);
 
     trico_free(triangles_from_b1b2b3b4);
     trico_free(b1);
@@ -312,13 +312,13 @@ namespace trico
     defstream.zalloc = 0;
     defstream.zfree = 0;
     defstream.next_in = (uint8_t*)triangles;
-    defstream.avail_in = nr_of_triangles*4;
+    defstream.avail_in = nr_of_triangles*12;
     defstream.next_out = 0;
     defstream.avail_out = 0;
 
     if (deflateInit(&defstream, Z_BEST_COMPRESSION) == Z_OK)
       {
-      auto estimateLen = deflateBound(&defstream, nr_of_triangles*4);
+      auto estimateLen = deflateBound(&defstream, nr_of_triangles*12);
       uint8_t* compressed_buf = new uint8_t[estimateLen];
       defstream.next_out = compressed_buf;
       defstream.avail_out = estimateLen;
@@ -327,7 +327,7 @@ namespace trico
 
       std::streamsize length = (uint8_t*)defstream.next_out - compressed_buf;
       total_length += (uint32_t)length;
-      std::cout << "Compression ratio zlib for triangles unshuffled: " << ((float)nr_of_triangles*4) / (float)length << "\n";
+      std::cout << "Compression ratio zlib for triangles unshuffled: " << ((float)nr_of_triangles*12) / (float)length << "\n";
 
       delete[] compressed_buf;
       }

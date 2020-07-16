@@ -1,11 +1,13 @@
 
 set(HDRS
 fps_compression.h
+int_compression.h
 test_assert.h
     )
 	
 set(SRCS
 fps_compression.cpp
+int_compression.cpp
 test_assert.cpp
 test.cpp
 )

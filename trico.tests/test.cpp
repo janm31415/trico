@@ -1,5 +1,6 @@
 #include "test_assert.h"
 #include "fps_compression.h"
+#include "int_compression.h"
 
 #include <ctime>
 
@@ -8,7 +9,8 @@ int main(int /*argc*/, const char* /*argv*/[])
   InitTestEngine();
 
   auto tic = std::clock();
-  run_all_fps_compression_tests();
+  //run_all_fps_compression_tests();
+  run_all_int_compression_tests();
   auto toc = std::clock();
 
   if (!testing_fails) 

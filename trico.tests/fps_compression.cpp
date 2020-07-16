@@ -55,40 +55,6 @@ namespace trico
     trico_free(triangles);
     }
 
-  void transpose_uint32_aos_to_soa(const char* filename)
-    {
-    uint32_t nr_of_vertices;
-    float* vertices;
-    uint32_t nr_of_triangles;
-    uint32_t* triangles;
-
-    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
-
-    uint8_t* b1;
-    uint8_t* b2;
-    uint8_t* b3;
-    uint8_t* b4;
-
-    transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles);  
-
-    uint32_t* triangles_from_b1b2b3b4;
-
-    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles);
-
-    for (uint32_t i = 0; i < nr_of_triangles; ++i)
-      {
-      TEST_EQ(triangles[i], triangles_from_b1b2b3b4[i]);
-      }
-
-    trico_free(triangles_from_b1b2b3b4);
-    trico_free(b1);
-    trico_free(b2);
-    trico_free(b3);
-    trico_free(b4);
-    trico_free(vertices);
-    trico_free(triangles);
-    }
-
   void compress_vertices_double(const char* filename)
     {
     uint32_t nr_of_vertices;
@@ -600,11 +566,10 @@ namespace trico
     trico_free(triangles);
     }
 
-  void test_compression(const char* filename)
+  void test_float_compression(const char* filename)
     {
     std::cout << "Tests for file " << filename << "\n";
-    transpose_xyz_aos_to_soa(filename);
-    transpose_uint32_aos_to_soa(filename);
+    transpose_xyz_aos_to_soa(filename);    
     compress_vertices(filename);
     compress_vertices_no_swizzling(filename);
     compress_vertices_double(filename);
@@ -618,7 +583,7 @@ namespace trico
     std::cout << "********************************************\n";
     }
 
-  void test_compression_double(const char* filename)
+  void test_double_compression(const char* filename)
     {
     std::cout << "Tests for file " << filename << "\n";   
     compress_vertices_double(filename);
@@ -630,10 +595,11 @@ void run_all_fps_compression_tests()
   {
   using namespace trico;
   
-  test_compression("data/StanfordBunny.stl");  
+  test_float_compression("data/StanfordBunny.stl");  
+  test_double_compression("data/StanfordBunny.stl");
   
-  test_compression("D:/stl/dino.stl");
-  test_compression("D:/stl/bad.stl");
+  //test_float_compression("D:/stl/dino.stl");
+  //test_float_compression("D:/stl/bad.stl");
   /*
   test_compression("D:/stl/horned_sea_star.stl");
   test_compression("D:/stl/core.stl");

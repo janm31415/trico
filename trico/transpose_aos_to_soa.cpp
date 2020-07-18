@@ -135,6 +135,49 @@ namespace trico
     *b3 = (uint8_t*)trico_malloc(nr_of_indices);
     *b4 = (uint8_t*)trico_malloc(nr_of_indices);
     uint32_t treated = 0;
+
+#if defined(_SSE2)
+    uint8_t* p0 = *b1;
+    uint8_t* p1 = *b2;
+    uint8_t* p2 = *b3;
+    uint8_t* p3 = *b4;
+    const __m128i shuffler = _mm_set_epi8(15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0);
+    for (; treated < (nr_of_indices & 15); treated += 16, indices += 16, p0 += 16, p1 += 16, p2 += 16, p3 += 16)
+      {
+      __m128i i3i2i1i0 = _mm_load_si128((__m128i*) indices);
+      __m128i i7i6i5i4 = _mm_load_si128((__m128i*) (indices + 4));
+      __m128i i11i10i9i8 = _mm_load_si128((__m128i*) (indices + 8));
+      __m128i i15i14i13i12 = _mm_load_si128((__m128i*) (indices + 12));
+      //_mm_shuffle_epi8 is ssse3
+      __m128i b3b2b1b0 = _mm_shuffle_epi8(i3i2i1i0, shuffler);
+      __m128i b7b6b5b4 = _mm_shuffle_epi8(i7i6i5i4, shuffler);
+      __m128i b11b10b9b8 = _mm_shuffle_epi8(i11i10i9i8, shuffler);
+      __m128i b15b14b13b12 = _mm_shuffle_epi8(i15i14i13i12, shuffler);
+      
+      __m128 b3b2b1b0f = _mm_castsi128_ps(b3b2b1b0);
+      __m128 b7b6b5b4f = _mm_castsi128_ps(b7b6b5b4);
+      __m128 b11b10b9b8f = _mm_castsi128_ps(b11b10b9b8);
+      __m128 b15b14b13b12f = _mm_castsi128_ps(b15b14b13b12);
+
+      __m128 b5b4b1b0f = _mm_shuffle_ps(b3b2b1b0f, b7b6b5b4f, _MM_SHUFFLE(1, 0, 1, 0));
+      __m128 b13b12b9b8f = _mm_shuffle_ps(b11b10b9b8f, b15b14b13b12f, _MM_SHUFFLE(1, 0, 1, 0));      
+      
+      __m128 b12b8b4b0f = _mm_shuffle_ps(b5b4b1b0f, b13b12b9b8f, _MM_SHUFFLE(2, 0, 2, 0));
+      __m128 b13b9b5b1f = _mm_shuffle_ps(b5b4b1b0f, b13b12b9b8f, _MM_SHUFFLE(3, 1, 3, 1));
+
+      __m128 b7b6b3b2f = _mm_shuffle_ps(b3b2b1b0f, b7b6b5b4f, _MM_SHUFFLE(3, 2, 3, 2));
+      __m128 b15b14b11b10f = _mm_shuffle_ps(b11b10b9b8f, b15b14b13b12f, _MM_SHUFFLE(3, 2, 3, 2));
+
+      __m128 b14b10b6b2f = _mm_shuffle_ps(b7b6b3b2f, b15b14b11b10f, _MM_SHUFFLE(2, 0, 2, 0));
+      __m128 b15b11b7b3f = _mm_shuffle_ps(b7b6b3b2f, b15b14b11b10f, _MM_SHUFFLE(3, 1, 3, 1));
+
+      _mm_store_ps((float*)p0, b12b8b4b0f);
+      _mm_store_ps((float*)p1, b13b9b5b1f);
+      _mm_store_ps((float*)p2, b14b10b6b2f);
+      _mm_store_ps((float*)p3, b15b11b7b3f);
+      }
+#endif
+
     for (uint32_t i = treated; i < nr_of_indices; ++i)
       {
       uint32_t index = *indices++;
@@ -149,6 +192,44 @@ namespace trico
     {
     *indices = (uint32_t*)trico_malloc(nr_of_indices * 4);
     uint32_t treated = 0;
+#if defined(_SSE2)
+    uint32_t* p_indices = *indices;
+    const __m128i shuffler = _mm_set_epi8(15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0);
+    for (; treated < (nr_of_indices & 15); treated += 16, p_indices += 16, b1 += 16, b2 += 16, b3 += 16, b4 += 16)
+      {
+      __m128 b12b8b4b0f = _mm_load_ps((const float*)b1);
+      __m128 b13b9b5b1f = _mm_load_ps((const float*)b2);
+      __m128 b14b10b6b2f = _mm_load_ps((const float*)b3);
+      __m128 b15b11b7b3f = _mm_load_ps((const float*)b4);
+
+      __m128 b5b1b4b0f = _mm_shuffle_ps(b12b8b4b0f, b13b9b5b1f, _MM_SHUFFLE(1, 0, 1, 0));
+      __m128 b13b9b12b8f = _mm_shuffle_ps(b12b8b4b0f, b13b9b5b1f, _MM_SHUFFLE(3, 2, 3, 2));
+
+      __m128 b7b3b6b2f = _mm_shuffle_ps(b14b10b6b2f, b15b11b7b3f, _MM_SHUFFLE(1, 0, 1, 0));
+      __m128 b15b11b14b10f = _mm_shuffle_ps(b14b10b6b2f, b15b11b7b3f, _MM_SHUFFLE(3, 2, 3, 2));
+
+      __m128 b3b2b1b0f = _mm_shuffle_ps(b5b1b4b0f, b7b3b6b2f, _MM_SHUFFLE(2, 0, 2, 0));
+      __m128 b7b6b5b4f = _mm_shuffle_ps(b5b1b4b0f, b7b3b6b2f, _MM_SHUFFLE(3, 1, 3, 1));
+
+      __m128 b11b10b9b8f = _mm_shuffle_ps(b13b9b12b8f, b15b11b14b10f, _MM_SHUFFLE(2, 0, 2, 0));
+      __m128 b15b14b13b12f = _mm_shuffle_ps(b13b9b12b8f, b15b11b14b10f, _MM_SHUFFLE(3, 1, 3, 1));
+
+      __m128i b3b2b1b0 = _mm_castps_si128(b3b2b1b0f);
+      __m128i b7b6b5b4 = _mm_castps_si128(b7b6b5b4f);
+      __m128i b11b10b9b8 = _mm_castps_si128(b11b10b9b8f);
+      __m128i b15b14b13b12 = _mm_castps_si128(b15b14b13b12f);
+
+      __m128i i3i2i1i0 = _mm_shuffle_epi8(b3b2b1b0, shuffler);
+      __m128i i7i6i5i4 = _mm_shuffle_epi8(b7b6b5b4, shuffler);
+      __m128i i11i10i9i8 = _mm_shuffle_epi8(b11b10b9b8, shuffler);
+      __m128i i15i14i13i12 = _mm_shuffle_epi8(b15b14b13b12, shuffler);
+
+      _mm_store_si128((__m128i*)(p_indices), i3i2i1i0);
+      _mm_store_si128((__m128i*)(p_indices+4), i7i6i5i4);
+      _mm_store_si128((__m128i*)(p_indices+8), i11i10i9i8);
+      _mm_store_si128((__m128i*)(p_indices+12), i15i14i13i12);
+      }
+#endif
     for (uint32_t i = treated; i < nr_of_indices; ++i)
       {
       const uint32_t index = (uint32_t)(*b1++) | (uint32_t)(*b2++) << 8 | (uint32_t)(*b3++) << 16 | (uint32_t)(*b4++) << 24;

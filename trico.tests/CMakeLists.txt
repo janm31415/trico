@@ -3,6 +3,7 @@ set(HDRS
 fps_compression.h
 int_compression.h
 test_assert.h
+timer.h
     )
 	
 set(SRCS

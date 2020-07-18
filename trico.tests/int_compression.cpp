@@ -11,8 +11,27 @@
 
 #include <iostream>
 
+#include "timer.h"
+
 namespace trico
   {
+
+  namespace
+    {
+
+    timer g_timer;
+
+    void tic()
+      {
+      g_timer.start();
+      }
+
+    void toc(const char* txt)
+      {
+      double ti = g_timer.time_elapsed();
+      std::cout << txt << ti << " seconds.\n";
+      }
+    }
 
 
   void transpose_uint32_aos_to_soa(const char* filename)
@@ -29,13 +48,18 @@ namespace trico
     uint8_t* b3;
     uint8_t* b4;
 
-    transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles*3);
+    tic();
+    transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles * 3);
+    toc("transpose_uint32_aos_to_soa time: ");
+
 
     uint32_t* triangles_from_b1b2b3b4;
 
-    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles*3);
+    tic();
+    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles * 3);
+    toc("transpose_uint32_soa_to_aos time: ");
 
-    for (uint32_t i = 0; i < nr_of_triangles*3; ++i)
+    for (uint32_t i = 0; i < nr_of_triangles * 3; ++i)
       {
       TEST_EQ(triangles[i], triangles_from_b1b2b3b4[i]);
       }
@@ -63,7 +87,7 @@ namespace trico
     uint8_t* b3;
     uint8_t* b4;
 
-    transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles*3);
+    transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles * 3);
 
     uint32_t total_length = 0;
     {
@@ -128,7 +152,7 @@ namespace trico
 
     uint32_t* triangles_from_b1b2b3b4;
 
-    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles*3);
+    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles * 3);
 
     trico_free(triangles_from_b1b2b3b4);
     trico_free(b1);
@@ -182,7 +206,7 @@ namespace trico
     uint8_t* b3;
     uint8_t* b4;
 
-    transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles*3);
+    transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles * 3);
 
     uint32_t total_length = 0;
     z_stream defstream;
@@ -287,7 +311,7 @@ namespace trico
 
     uint32_t* triangles_from_b1b2b3b4;
 
-    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles*3);
+    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles * 3);
 
     trico_free(triangles_from_b1b2b3b4);
     trico_free(b1);
@@ -312,13 +336,13 @@ namespace trico
     defstream.zalloc = 0;
     defstream.zfree = 0;
     defstream.next_in = (uint8_t*)triangles;
-    defstream.avail_in = nr_of_triangles*12;
+    defstream.avail_in = nr_of_triangles * 12;
     defstream.next_out = 0;
     defstream.avail_out = 0;
 
     if (deflateInit(&defstream, Z_BEST_COMPRESSION) == Z_OK)
       {
-      auto estimateLen = deflateBound(&defstream, nr_of_triangles*12);
+      auto estimateLen = deflateBound(&defstream, nr_of_triangles * 12);
       uint8_t* compressed_buf = new uint8_t[estimateLen];
       defstream.next_out = compressed_buf;
       defstream.avail_out = estimateLen;
@@ -327,7 +351,7 @@ namespace trico
 
       std::streamsize length = (uint8_t*)defstream.next_out - compressed_buf;
       total_length += (uint32_t)length;
-      std::cout << "Compression ratio zlib for triangles unshuffled: " << ((float)nr_of_triangles*12) / (float)length << "\n";
+      std::cout << "Compression ratio zlib for triangles unshuffled: " << ((float)nr_of_triangles * 12) / (float)length << "\n";
 
       delete[] compressed_buf;
       }
@@ -342,10 +366,10 @@ namespace trico
     {
     std::cout << "Tests for file " << filename << "\n";
     transpose_uint32_aos_to_soa(filename);
-    compress_triangles_lz4(filename);
-    compress_triangles_lz4_no_shuffling(filename);
-    compress_triangles_zlib(filename);
-    compress_triangles_zlib_no_shuffling(filename);
+    //compress_triangles_lz4(filename);
+    //compress_triangles_lz4_no_shuffling(filename);
+    //compress_triangles_zlib(filename);
+    //compress_triangles_zlib_no_shuffling(filename);
     }
   }
 
@@ -354,6 +378,23 @@ void run_all_int_compression_tests()
   {
   using namespace trico;
 
-  test_int_compression("data/StanfordBunny.stl");
+  //test_int_compression("data/StanfordBunny.stl");
+  test_int_compression("D:/stl/kouros.stl");
+  /*
+  test_int_compression("D:/stl/dino.stl");
+  test_int_compression("D:/stl/bad.stl");
+  //test_int_compression("D:/stl/horned_sea_star.stl");
+  test_int_compression("D:/stl/core.stl");
+  test_int_compression("D:/stl/pega.stl");
   //test_int_compression("D:/stl/kouros.stl");
+  test_int_compression("D:/stl/Aston Martin DB9 sell.stl");
+  test_int_compression("D:/stl/front-cover.stl");
+  test_int_compression("D:/stl/front.stl");
+  test_int_compression("D:/stl/einstein.stl");
+  test_int_compression("D:/stl/ima_test_tank.stl");
+  test_int_compression("D:/stl/jan.stl");
+  test_int_compression("D:/stl/SKIWI.stl");
+  test_int_compression("D:/stl/wasp_bot.stl");
+  //test_int_compression("D:/stl/RobotRed.stl");
+*/
   }

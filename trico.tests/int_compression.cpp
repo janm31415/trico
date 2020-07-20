@@ -48,6 +48,7 @@ namespace trico
     uint8_t* b3;
     uint8_t* b4;
 
+
     tic();
     transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles * 3);
     toc("transpose_uint32_aos_to_soa time: ");
@@ -69,6 +70,7 @@ namespace trico
     trico_free(b2);
     trico_free(b3);
     trico_free(b4);
+
     trico_free(vertices);
     trico_free(triangles);
     }
@@ -378,8 +380,8 @@ void run_all_int_compression_tests()
   {
   using namespace trico;
 
-  //test_int_compression("data/StanfordBunny.stl");
-  test_int_compression("D:/stl/kouros.stl");
+  test_int_compression("data/StanfordBunny.stl");
+  //test_int_compression("D:/stl/kouros.stl");
   /*
   test_int_compression("D:/stl/dino.stl");
   test_int_compression("D:/stl/bad.stl");

@@ -12,8 +12,28 @@
 
 #include <iostream>
 
+#include "timer.h"
+
+
 namespace trico
   {
+  namespace
+    {
+
+    timer g_timer;
+
+    void tic()
+      {
+      g_timer.start();
+      }
+
+    void toc(const char* txt)
+      {
+      double ti = g_timer.time_elapsed();
+      std::cout << txt << ti << " seconds.\n";
+      }
+    }
+
   void transpose_xyz_aos_to_soa(const char* filename)
     {
     uint32_t nr_of_vertices;
@@ -27,7 +47,9 @@ namespace trico
     float* y;
     float* z;
 
+    tic();
     transpose_xyz_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
+    toc("transpose_xyz_aos_to_soa time: ");
 
     for (uint32_t i = 0; i < nr_of_vertices; ++i)
       {
@@ -38,7 +60,9 @@ namespace trico
 
     float* vertices_from_xyz;
 
+    tic();
     transpose_xyz_soa_to_aos(&vertices_from_xyz, x, y, z, nr_of_vertices);
+    toc("transpose_xyz_soa_to_aos time: ");
 
     for (uint32_t i = 0; i < nr_of_vertices; ++i)
       {
@@ -594,7 +618,7 @@ namespace trico
 void run_all_fps_compression_tests()
   {
   using namespace trico;
-  
+  transpose_xyz_aos_to_soa("D:/stl/kouros.stl");
   test_float_compression("data/StanfordBunny.stl");  
   test_double_compression("data/StanfordBunny.stl");
   

@@ -368,10 +368,10 @@ namespace trico
     {
     std::cout << "Tests for file " << filename << "\n";
     transpose_uint32_aos_to_soa(filename);
-    //compress_triangles_lz4(filename);
-    //compress_triangles_lz4_no_shuffling(filename);
-    //compress_triangles_zlib(filename);
-    //compress_triangles_zlib_no_shuffling(filename);
+    compress_triangles_lz4(filename);
+    compress_triangles_lz4_no_shuffling(filename);
+    compress_triangles_zlib(filename);
+    compress_triangles_zlib_no_shuffling(filename);
     }
   }
 
@@ -382,7 +382,7 @@ void run_all_int_compression_tests()
 
   test_int_compression("data/StanfordBunny.stl");
   //test_int_compression("D:/stl/kouros.stl");
-  /*
+  
   test_int_compression("D:/stl/dino.stl");
   test_int_compression("D:/stl/bad.stl");
   //test_int_compression("D:/stl/horned_sea_star.stl");
@@ -398,5 +398,5 @@ void run_all_int_compression_tests()
   test_int_compression("D:/stl/SKIWI.stl");
   test_int_compression("D:/stl/wasp_bot.stl");
   //test_int_compression("D:/stl/RobotRed.stl");
-*/
+
   }

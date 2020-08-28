@@ -4,6 +4,7 @@ fps_compression.h
 int_compression.h
 test_assert.h
 timer.h
+trico_compression.h
     )
 	
 set(SRCS
@@ -11,6 +12,7 @@ fps_compression.cpp
 int_compression.cpp
 test_assert.cpp
 test.cpp
+trico_compression.cpp
 )
 
 

@@ -6,12 +6,14 @@ intrinsics.h
 iostl.h
 transpose_aos_to_soa.h
 trico_api.h
+trico.h
 )
 	
 set(SRCS
 floating_point_stream_compression.cpp
 iostl.cpp
 transpose_aos_to_soa.cpp
+trico.cpp
 )
 
 if (WIN32)
@@ -62,9 +64,11 @@ source_group("Source Files" FILES ${srcs})
 
 target_include_directories(trico
     PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../
     )	
     
 	
 target_link_libraries(trico
     PRIVATE	
+    lz4
     )	

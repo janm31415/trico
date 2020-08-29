@@ -16,33 +16,7 @@ namespace trico
 
     uint32_t treated = 0;
 
-#if defined(_AVX2)
-    float* px = *x;
-    float* py = *y;
-    float* pz = *z;
-    for (; treated < (nr_of_vertices & 7); treated += 8, vertices += 24, px += 8, py += 8, pz += 8)
-      {
-      __m128 *m = (__m128*) vertices;
-      __m256 m03;
-      __m256 m14;
-      __m256 m25;
-      m03 = _mm256_castps128_ps256(m[0]); // load lower halves
-      m14 = _mm256_castps128_ps256(m[1]);
-      m25 = _mm256_castps128_ps256(m[2]);
-      m03 = _mm256_insertf128_ps(m03, m[3], 1);  // load upper halves
-      m14 = _mm256_insertf128_ps(m14, m[4], 1);
-      m25 = _mm256_insertf128_ps(m25, m[5], 1);
-
-      __m256 xy = _mm256_shuffle_ps(m14, m25, _MM_SHUFFLE(2, 1, 3, 2)); // upper x's and y's 
-      __m256 yz = _mm256_shuffle_ps(m03, m14, _MM_SHUFFLE(1, 0, 2, 1)); // lower y's and z's
-      __m256 X = _mm256_shuffle_ps(m03, xy, _MM_SHUFFLE(2, 0, 3, 0));
-      __m256 Y = _mm256_shuffle_ps(yz, xy, _MM_SHUFFLE(3, 1, 2, 0));
-      __m256 Z = _mm256_shuffle_ps(yz, m25, _MM_SHUFFLE(3, 0, 3, 1));
-      _mm256_store_ps(px, X);
-      _mm256_store_ps(py, Y);
-      _mm256_store_ps(pz, Z);
-      }
-#elif defined(_SSE2)
+#if defined(_SSE2)
     float* px = *x;
     float* py = *y;
     float* pz = *z;
@@ -75,31 +49,7 @@ namespace trico
     {
     *vertices = (float*)trico_malloc(sizeof(float)*nr_of_vertices * 3);
     uint32_t treated = 0;
-#if defined(_AVX2)
-    float* vert = *vertices;
-    for (; treated < (nr_of_vertices & 7); treated += 8, vert += 24, x += 8, y += 8, z += 8)
-      {
-      __m256 X = _mm256_load_ps(x);
-      __m256 Y = _mm256_load_ps(y);
-      __m256 Z = _mm256_load_ps(z);
-      __m128 *m = (__m128*) vert;
-
-      __m256 rxy = _mm256_shuffle_ps(X, Y, _MM_SHUFFLE(2, 0, 2, 0));
-      __m256 ryz = _mm256_shuffle_ps(Y, Z, _MM_SHUFFLE(3, 1, 3, 1));
-      __m256 rzx = _mm256_shuffle_ps(Z, X, _MM_SHUFFLE(3, 1, 2, 0));
-
-      __m256 r03 = _mm256_shuffle_ps(rxy, rzx, _MM_SHUFFLE(2, 0, 2, 0));
-      __m256 r14 = _mm256_shuffle_ps(ryz, rxy, _MM_SHUFFLE(3, 1, 2, 0));
-      __m256 r25 = _mm256_shuffle_ps(rzx, ryz, _MM_SHUFFLE(3, 1, 3, 1));
-
-      m[0] = _mm256_castps256_ps128(r03);
-      m[1] = _mm256_castps256_ps128(r14);
-      m[2] = _mm256_castps256_ps128(r25);
-      m[3] = _mm256_extractf128_ps(r03, 1);
-      m[4] = _mm256_extractf128_ps(r14, 1);
-      m[5] = _mm256_extractf128_ps(r25, 1);
-      }
-#elif defined(_SSE2)
+#if defined(_SSE2)
     float* vert = *vertices;
     for (; treated < (nr_of_vertices & 3); treated += 4, vert += 12, x += 4, y += 4, z += 4)
       {

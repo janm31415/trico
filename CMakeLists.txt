@@ -11,8 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(TRICO_VECTOR_INTRINSICS "avx2" CACHE STRING  "Choose vector intrinsics: none, sse2 or avx2")
-set_property(CACHE TRICO_VECTOR_INTRINSICS PROPERTY STRINGS none sse2 avx2)
+set(TRICO_VECTOR_INTRINSICS "sse2" CACHE STRING  "Choose vector intrinsics: none, sse2")
+set_property(CACHE TRICO_VECTOR_INTRINSICS PROPERTY STRINGS none sse2)
 message(STATUS "TRICO_VECTOR_INTRINSICS='${TRICO_VECTOR_INTRINSICS}'")
 
 add_subdirectory(lz4)

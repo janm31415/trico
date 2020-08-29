@@ -20,6 +20,7 @@ namespace trico
     TEST_ASSERT(arch != nullptr);
     uint32_t version = get_version(arch);
     TEST_EQ(0, version);
+    TEST_EQ(empty, get_next_stream_type(arch));
     close_archive(arch);
     }
 
@@ -36,9 +37,31 @@ namespace trico
     void* arch = open_writable_archive("stltest.trc");
     write_vertices(arch, vertices, nr_of_vertices);
     write_triangles(arch, triangles, nr_of_triangles);
-    close_archive(arch);
+    close_archive(arch);  
+
+    arch = open_readable_archive("stltest.trc");
+    TEST_EQ(vertex_float_stream, get_next_stream_type(arch));
+    
+    float* vertices_read;
+    uint32_t nr_of_vertices_read;
+    TEST_ASSERT(read_vertices(arch, &nr_of_vertices_read, &vertices_read));
+
+    TEST_EQ(nr_of_vertices, nr_of_vertices_read);
+
+    for (uint32_t i = 0; i < nr_of_vertices*3; ++i)
+      {
+      TEST_EQ(vertices[i], vertices_read[i]);
+      }
+
+    trico_free(vertices_read);
     trico_free(vertices);
+
+    TEST_EQ(triangle_uint32_stream, get_next_stream_type(arch));
+
     trico_free(triangles);
+
+    close_archive(arch);
+
 
     std::cout << "********************************************\n";
     }
@@ -51,4 +74,5 @@ void run_all_trico_compression_tests()
   using namespace trico;
   test_header();
   test_stl("data/StanfordBunny.stl");
+  //test_stl("D:/stl/kouros.stl");
   }

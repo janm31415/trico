@@ -31,7 +31,13 @@ namespace trico
     void read_next_stream_type(archive* arch)
       {
       if (!feof(arch->f))
-        fread(&(arch->next_stream_type), 1, 1, arch->f); // version number
+        {
+        size_t res = fread(&(arch->next_stream_type), 1, 1, arch->f); // version number
+        if (res == 0)
+          arch->next_stream_type = empty;
+        }
+      else
+        arch->next_stream_type = empty;
       }
 
     bool read_header(archive* arch)
@@ -87,7 +93,7 @@ namespace trico
     return arch->version;
     }
 
-  void write_vertices(void* a, const float* vertices, uint32_t nr_of_vertices)
+  void write_vertices(void* a, uint32_t nr_of_vertices, const float* vertices)
     {
     archive* arch = (archive*)a;
     uint8_t header = (uint8_t)vertex_float_stream;
@@ -126,11 +132,12 @@ namespace trico
     trico_free(compressed_z);
     }
 
-  void write_triangles(void* a, const uint32_t* tria_indices, uint32_t nr_of_triangles)
+  void write_triangles(void* a, uint32_t nr_of_triangles, const uint32_t* tria_indices)
     {
     archive* arch = (archive*)a;
     uint8_t header = (uint8_t)triangle_uint32_stream;
     fwrite(&header, 1, 1, arch->f);
+    fwrite(&nr_of_triangles, sizeof(uint32_t), 1, arch->f);
 
     uint8_t* b1;
     uint8_t* b2;
@@ -219,6 +226,58 @@ namespace trico
     trico_free(decompressed_x);
     trico_free(decompressed_y);
     trico_free(decompressed_z);
+
+    read_next_stream_type(arch);
+
+    return true;
+    }
+
+  bool read_triangles(void* a, uint32_t* nr_of_triangles, uint32_t** tria_indices)
+    {
+    archive* arch = (archive*)a;
+    *nr_of_triangles = 0;
+    *tria_indices = nullptr;
+    if (get_next_stream_type(arch) != triangle_uint32_stream)
+      return false;
+
+    fread(nr_of_triangles, sizeof(uint32_t), 1, arch->f);
+
+    uint32_t nr_of_compressed_bytes;
+    fread(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch->f);
+    void* compressed = trico_malloc(nr_of_compressed_bytes);
+    fread(compressed, 1, nr_of_compressed_bytes, arch->f);
+    uint8_t* decompressed_b1 = (uint8_t*)trico_malloc(*nr_of_triangles * 3); 
+    uint32_t bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b1, nr_of_compressed_bytes, *nr_of_triangles * 3);
+    assert(bytes_decompressed == *nr_of_triangles * 3);
+
+    fread(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch->f);
+    compressed = trico_realloc(compressed, nr_of_compressed_bytes);
+    fread(compressed, 1, nr_of_compressed_bytes, arch->f);
+    uint8_t* decompressed_b2 = (uint8_t*)trico_malloc(*nr_of_triangles * 3);
+    bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b2, nr_of_compressed_bytes, *nr_of_triangles * 3);
+    assert(bytes_decompressed == *nr_of_triangles * 3);
+
+    fread(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch->f);
+    compressed = trico_realloc(compressed, nr_of_compressed_bytes);
+    fread(compressed, 1, nr_of_compressed_bytes, arch->f);
+    uint8_t* decompressed_b3 = (uint8_t*)trico_malloc(*nr_of_triangles * 3);
+    bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b3, nr_of_compressed_bytes, *nr_of_triangles * 3);
+    assert(bytes_decompressed == *nr_of_triangles * 3);
+
+    fread(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch->f);
+    compressed = trico_realloc(compressed, nr_of_compressed_bytes);
+    fread(compressed, 1, nr_of_compressed_bytes, arch->f);
+    uint8_t* decompressed_b4 = (uint8_t*)trico_malloc(*nr_of_triangles * 3);
+    bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b4, nr_of_compressed_bytes, *nr_of_triangles * 3);
+    assert(bytes_decompressed == *nr_of_triangles * 3);
+
+    transpose_uint32_soa_to_aos(tria_indices, decompressed_b1, decompressed_b2, decompressed_b3, decompressed_b4, *nr_of_triangles * 3);
+
+    trico_free(compressed);
+    trico_free(decompressed_b1);
+    trico_free(decompressed_b2);
+    trico_free(decompressed_b3);
+    trico_free(decompressed_b4);
 
     read_next_stream_type(arch);
 

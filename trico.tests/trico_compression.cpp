@@ -35,8 +35,8 @@ namespace trico
     TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
     void* arch = open_writable_archive("stltest.trc");
-    write_vertices(arch, vertices, nr_of_vertices);
-    write_triangles(arch, triangles, nr_of_triangles);
+    write_vertices(arch, nr_of_vertices, vertices);
+    write_triangles(arch, nr_of_triangles, triangles);
     close_archive(arch);  
 
     arch = open_readable_archive("stltest.trc");
@@ -58,7 +58,21 @@ namespace trico
 
     TEST_EQ(triangle_uint32_stream, get_next_stream_type(arch));
 
+    uint32_t* triangles_read;
+    uint32_t nr_of_triangles_read;
+    TEST_ASSERT(read_triangles(arch, &nr_of_triangles_read, &triangles_read));
+
+    TEST_EQ(nr_of_triangles, nr_of_triangles_read);
+
+    for (uint32_t i = 0; i < nr_of_triangles * 3; ++i)
+      {
+      TEST_EQ(triangles[i], triangles_read[i]);
+      }
+
+    trico_free(triangles_read);
     trico_free(triangles);
+
+    TEST_EQ(empty, get_next_stream_type(arch));
 
     close_archive(arch);
 

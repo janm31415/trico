@@ -109,78 +109,8 @@ namespace trico
     std::cout << "********************************************\n";
     }
 
-  ///////////////////////////////////////
 
-  void test_header_old()
-    {
-    void* arch = open_old_archive_for_writing("header.trc");
-    close_old_archive(arch);
-
-    arch = open_old_archive_for_reading("header.trc");
-    TEST_ASSERT(arch != nullptr);
-    uint32_t version = get_version_old(arch);
-    TEST_EQ(0, version);
-    TEST_EQ(empty, get_next_stream_type_old(arch));
-    close_old_archive(arch);
-    }
-
-  void test_stl_old(const char* filename)
-    {
-    std::cout << "Tests for file " << filename << "\n";
-    uint32_t nr_of_vertices;
-    float* vertices;
-    uint32_t nr_of_triangles;
-    uint32_t* triangles;
-
-    TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
-
-    void* arch = open_old_archive_for_writing("stltest.trc");
-    write_vertices_old(arch, nr_of_vertices, vertices);
-    write_triangles_old(arch, nr_of_triangles, triangles);
-    close_old_archive(arch);  
-
-    arch = open_old_archive_for_reading("stltest.trc");
-    TEST_EQ(vertex_float_stream, get_next_stream_type_old(arch));
-    
-    float* vertices_read;
-    uint32_t nr_of_vertices_read;
-    TEST_ASSERT(read_vertices_old(arch, &nr_of_vertices_read, &vertices_read));
-
-    TEST_EQ(nr_of_vertices, nr_of_vertices_read);
-
-    for (uint32_t i = 0; i < nr_of_vertices*3; ++i)
-      {
-      TEST_EQ(vertices[i], vertices_read[i]);
-      }
-
-    trico_free(vertices_read);
-    trico_free(vertices);
-
-    TEST_EQ(triangle_uint32_stream, get_next_stream_type_old(arch));
-
-    uint32_t* triangles_read;
-    uint32_t nr_of_triangles_read;
-    TEST_ASSERT(read_triangles_old(arch, &nr_of_triangles_read, &triangles_read));
-
-    TEST_EQ(nr_of_triangles, nr_of_triangles_read);
-
-    for (uint32_t i = 0; i < nr_of_triangles * 3; ++i)
-      {
-      TEST_EQ(triangles[i], triangles_read[i]);
-      }
-
-    trico_free(triangles_read);
-    trico_free(triangles);
-
-    TEST_EQ(empty, get_next_stream_type_old(arch));
-
-    close_old_archive(arch);
-
-
-    std::cout << "********************************************\n";
-    }
-
-  void test_stl_double_64_old(const char* filename)
+  void test_stl_double_64(const char* filename)
     {
     std::cout << "Tests for file " << filename << "\n";
     uint32_t nr_of_vertices;
@@ -193,7 +123,7 @@ namespace trico
     double* vertices = new double[nr_of_vertices * 3];
     uint64_t* triangles = new uint64_t[nr_of_triangles * 3];
 
-    for (uint32_t i = 0; i < nr_of_vertices*3; ++i)
+    for (uint32_t i = 0; i < nr_of_vertices * 3; ++i)
       {
       vertices[i] = (double)verticesf[i];
       }
@@ -205,60 +135,68 @@ namespace trico
     trico_free(verticesf);
     trico_free(triangles32);
 
-    void* arch = open_old_archive_for_writing("stltest.trc");
-    write_vertices_old(arch, nr_of_vertices, vertices);
-    write_triangles_old(arch, nr_of_triangles, triangles);
-    close_old_archive(arch);
+    void* arch = open_archive_for_writing(1024 * 1024);
+    write_vertices(arch, nr_of_vertices, vertices);
+    write_triangles(arch, nr_of_triangles, triangles);
 
-    arch = open_old_archive_for_reading("stltest.trc");
-    TEST_EQ(vertex_double_stream, get_next_stream_type_old(arch));
+    std::ofstream outfile;
+    outfile.open("stltest.trc", std::ios::binary | std::ios::out);
+    outfile.write((const char*)get_buffer_pointer(arch), get_size(arch));
+    outfile.close();
 
-    double* vertices_read;
-    uint32_t nr_of_vertices_read;
-    TEST_ASSERT(read_vertices_old(arch, &nr_of_vertices_read, &vertices_read));
+    close_archive(arch);
 
-    TEST_EQ(nr_of_vertices, nr_of_vertices_read);
+    std::ifstream infile;
+    infile.open("stltest.trc", std::ios::binary | std::ios::in);
+    infile.seekg(0, std::ios::end);
+    uint64_t length = (uint64_t)infile.tellg();
+    infile.seekg(0, std::ios::beg);
+    char *data = new char[length];
+    infile.read(data, length);
+    infile.close();
 
+    arch = open_archive_for_reading((const uint8_t*)data, length);
+    TEST_EQ(vertex_double_stream, get_next_stream_type(arch));
+
+    uint32_t nr_vertices = get_number_of_vertices(arch);
+    TEST_EQ(nr_of_vertices, nr_vertices);
+
+    double* vertices_read = new double[nr_of_vertices * 3];
+
+    TEST_ASSERT(read_vertices(arch, &vertices_read));
     for (uint32_t i = 0; i < nr_of_vertices * 3; ++i)
       {
       TEST_EQ(vertices[i], vertices_read[i]);
       }
+    delete[] vertices_read;
 
-    trico_free(vertices_read);
-    
-    delete[] vertices;
+    TEST_EQ(triangle_uint64_stream, get_next_stream_type(arch));
+    uint32_t nr_triangles = get_number_of_triangles(arch);
+    TEST_EQ(nr_of_triangles, nr_triangles);
 
-    TEST_EQ(triangle_uint64_stream, get_next_stream_type_old(arch));
-
-    uint64_t* triangles_read;
-    uint32_t nr_of_triangles_read;
-    TEST_ASSERT(read_triangles_old(arch, &nr_of_triangles_read, &triangles_read));
-
-    TEST_EQ(nr_of_triangles, nr_of_triangles_read);
-
+    uint64_t* triangles_read = new uint64_t[nr_of_triangles * 3];
+    TEST_ASSERT(read_triangles(arch, &triangles_read));
     for (uint32_t i = 0; i < nr_of_triangles * 3; ++i)
       {
       TEST_EQ(triangles[i], triangles_read[i]);
       }
+    delete[] triangles_read;
 
-    trico_free(triangles_read);
-    
+    close_archive(arch);
+
+    delete[] vertices;
     delete[] triangles;
 
-    TEST_EQ(empty, get_next_stream_type_old(arch));
-
-    close_old_archive(arch);
-
-
+    delete[] data;
     std::cout << "********************************************\n";
     }
+
   }
-
-
 
 void run_all_trico_compression_tests()
   {
   using namespace trico;
   test_header();
   test_stl("data/stanfordbunny.stl");
+  test_stl_double_64("data/stanfordbunny.stl");
   }

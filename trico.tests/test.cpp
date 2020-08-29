@@ -10,8 +10,8 @@ int main(int /*argc*/, const char* /*argv*/[])
   InitTestEngine();
 
   auto tic = std::clock();
-  //run_all_fps_compression_tests();
-  //run_all_int_compression_tests();
+  run_all_fps_compression_tests();
+  run_all_int_compression_tests();
   run_all_trico_compression_tests();
   auto toc = std::clock();
 

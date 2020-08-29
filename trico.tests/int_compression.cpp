@@ -371,7 +371,7 @@ void run_all_int_compression_tests()
 
   test_int_compression("data/StanfordBunny.stl");
   //test_int_compression("D:/stl/kouros.stl");
-  
+  /*
   test_int_compression("D:/stl/dino.stl");
   test_int_compression("D:/stl/bad.stl");
   //test_int_compression("D:/stl/horned_sea_star.stl");
@@ -387,5 +387,5 @@ void run_all_int_compression_tests()
   test_int_compression("D:/stl/SKIWI.stl");
   test_int_compression("D:/stl/wasp_bot.stl");
   //test_int_compression("D:/stl/RobotRed.stl");
-
+  */
   }

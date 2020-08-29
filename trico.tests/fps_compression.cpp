@@ -623,10 +623,9 @@ namespace trico
 void run_all_fps_compression_tests()
   {
   using namespace trico;
-  transpose_xyz_aos_to_soa("D:/stl/kouros.stl");
+  transpose_xyz_aos_to_soa("data/StanfordBunny.stl");
   test_float_compression("data/StanfordBunny.stl");  
   test_double_compression("data/StanfordBunny.stl");
-  
   //test_float_compression("D:/stl/dino.stl");
   //test_float_compression("D:/stl/bad.stl");
   /*

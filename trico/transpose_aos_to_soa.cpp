@@ -1,7 +1,8 @@
 #include "transpose_aos_to_soa.h"
 #include "alloc.h"
 
-#include "intrinsics.h"
+#include <stdlib.h>
+#include <stdint.h>
 
 namespace trico
   {

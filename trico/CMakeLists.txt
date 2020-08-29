@@ -2,8 +2,6 @@
 set(HDRS
 alloc.h
 floating_point_stream_compression.h
-fmemopen.h
-intrinsics.h
 iostl.h
 transpose_aos_to_soa.h
 trico_api.h
@@ -12,7 +10,6 @@ trico.h
 	
 set(SRCS
 floating_point_stream_compression.cpp
-fmemopen.cpp
 iostl.cpp
 transpose_aos_to_soa.cpp
 trico.cpp
@@ -25,22 +22,9 @@ set(CMAKE_C_FLAGS_RELEASE "/W4 /MP /GF /O2 /Ob2 /Oi /Ot /MD /Zi /DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "/W4 /MP /GF /O2 /Ob2 /Oi /Ot /MD /Zi /DNDEBUG")
 endif (WIN32)
 
-if (UNIX)
-if (${TRICO_VECTOR_INTRINSICS} STREQUAL "sse2")
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -msse2")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -msse2")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -msse2")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
-endif (${TRICO_VECTOR_INTRINSICS} STREQUAL "sse2")
-endif (UNIX)
-
 # general build definitions
 add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-
-if (${TRICO_VECTOR_INTRINSICS} STREQUAL "sse2")
-add_definitions(-D_SSE2)
-endif (${TRICO_VECTOR_INTRINSICS} STREQUAL "sse2")
 
 add_library(trico SHARED ${HDRS} ${SRCS})
 source_group("Header Files" FILES ${hdrs})
@@ -51,7 +35,6 @@ target_include_directories(trico
     ${CMAKE_CURRENT_SOURCE_DIR}/../
     )	
     
-	
 target_link_libraries(trico
     PRIVATE	
     lz4

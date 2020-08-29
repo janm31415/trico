@@ -43,9 +43,9 @@ namespace trico
 
     TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
-    float* x;
-    float* y;
-    float* z;
+    float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* z = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
 
     tic();
     transpose_xyz_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
@@ -58,7 +58,7 @@ namespace trico
       TEST_EQ(z[i], vertices[i * 3 + 2]);
       }
 
-    float* vertices_from_xyz;
+    float* vertices_from_xyz = (float*)trico_malloc(sizeof(float)*nr_of_vertices * 3);
 
     tic();
     transpose_xyz_soa_to_aos(&vertices_from_xyz, x, y, z, nr_of_vertices);
@@ -87,9 +87,10 @@ namespace trico
     uint32_t* triangles;
 
     TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
-    float* x;
-    float* y;
-    float* z;
+
+    float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* z = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
 
     transpose_xyz_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
 
@@ -172,9 +173,10 @@ namespace trico
     uint32_t* triangles;
 
     TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
-    float* x;
-    float* y;
-    float* z;
+
+    float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* z = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
 
     transpose_xyz_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
 
@@ -243,9 +245,10 @@ namespace trico
     uint32_t* triangles;
 
     TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
-    float* x;
-    float* y;
-    float* z;
+
+    float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* z = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
 
     transpose_xyz_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
 
@@ -390,9 +393,10 @@ namespace trico
     uint32_t* triangles;
     
     TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
-    float* x;
-    float* y;
-    float* z;
+
+    float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* z = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
 
     transpose_xyz_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
 
@@ -515,9 +519,10 @@ namespace trico
     uint32_t* triangles;
     
     TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
-    float* x;
-    float* y;
-    float* z;
+
+    float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
+    float* z = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
 
     transpose_xyz_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
     uint32_t total_length = 0;

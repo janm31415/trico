@@ -43,10 +43,10 @@ namespace trico
 
     TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
-    uint8_t* b1;
-    uint8_t* b2;
-    uint8_t* b3;
-    uint8_t* b4;
+    uint8_t* b1 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
+    uint8_t* b2 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
+    uint8_t* b3 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
+    uint8_t* b4 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
 
 
     tic();
@@ -54,7 +54,7 @@ namespace trico
     toc("transpose_uint32_aos_to_soa time: ");
 
 
-    uint32_t* triangles_from_b1b2b3b4;
+    uint32_t* triangles_from_b1b2b3b4 = (uint32_t*)trico_malloc(nr_of_triangles * 3 * sizeof(uint32_t));
 
     tic();
     transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles * 3);
@@ -84,10 +84,10 @@ namespace trico
 
     TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
-    uint8_t* b1;
-    uint8_t* b2;
-    uint8_t* b3;
-    uint8_t* b4;
+    uint8_t* b1 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
+    uint8_t* b2 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
+    uint8_t* b3 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
+    uint8_t* b4 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
 
     transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles * 3);
 
@@ -152,11 +152,6 @@ namespace trico
     std::cout << "Compression ratio lz4 total: " << ((float)nr_of_triangles*12.f) / (float)total_length << "\n";
 
 
-    uint32_t* triangles_from_b1b2b3b4;
-
-    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles * 3);
-
-    trico_free(triangles_from_b1b2b3b4);
     trico_free(b1);
     trico_free(b2);
     trico_free(b3);
@@ -203,10 +198,10 @@ namespace trico
 
     TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
-    uint8_t* b1;
-    uint8_t* b2;
-    uint8_t* b3;
-    uint8_t* b4;
+    uint8_t* b1 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
+    uint8_t* b2 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
+    uint8_t* b3 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
+    uint8_t* b4 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
 
     transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, triangles, nr_of_triangles * 3);
 
@@ -310,12 +305,6 @@ namespace trico
 
     std::cout << "Compression ratio zlib total: " << ((float)nr_of_triangles*12.f) / (float)total_length << "\n";
 
-
-    uint32_t* triangles_from_b1b2b3b4;
-
-    transpose_uint32_soa_to_aos(&triangles_from_b1b2b3b4, b1, b2, b3, b4, nr_of_triangles * 3);
-
-    trico_free(triangles_from_b1b2b3b4);
     trico_free(b1);
     trico_free(b2);
     trico_free(b3);

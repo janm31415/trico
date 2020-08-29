@@ -25,7 +25,9 @@ namespace trico
 
   TRICO_API void write_vertices(void* archive, uint32_t nr_of_vertices, const double* vertices);
   
-  TRICO_API void write_triangles(void* archive, uint32_t nr_of_triangles, const uint32_t* tria_indices);
+  TRICO_API void write_triangles(void* archive, uint32_t nr_of_triangles, const uint32_t* tria_indices);  
+
+  TRICO_API void write_triangles(void* archive, uint32_t nr_of_triangles, const uint64_t* tria_indices);
 
   TRICO_API uint32_t get_version(void* archive);
 
@@ -33,6 +35,10 @@ namespace trico
 
   TRICO_API bool read_vertices(void* archive, uint32_t* nr_of_vertices, float** vertices);
 
+  TRICO_API bool read_vertices(void* archive, uint32_t* nr_of_vertices, double** vertices);
+
   TRICO_API bool read_triangles(void* archive, uint32_t* nr_of_triangles, uint32_t** tria_indices);
+
+  TRICO_API bool read_triangles(void* archive, uint32_t* nr_of_triangles, uint64_t** tria_indices);
 
   } // namespace trico

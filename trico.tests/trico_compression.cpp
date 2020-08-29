@@ -79,6 +79,79 @@ namespace trico
 
     std::cout << "********************************************\n";
     }
+
+  void test_stl_double_64(const char* filename)
+    {
+    std::cout << "Tests for file " << filename << "\n";
+    uint32_t nr_of_vertices;
+    float* verticesf;
+    uint32_t nr_of_triangles;
+    uint32_t* triangles32;
+
+    TEST_EQ(0, read_stl(&nr_of_vertices, &verticesf, &nr_of_triangles, &triangles32, filename));
+
+    double* vertices = new double[nr_of_vertices * 3];
+    uint64_t* triangles = new uint64_t[nr_of_triangles * 3];
+
+    for (uint32_t i = 0; i < nr_of_vertices*3; ++i)
+      {
+      vertices[i] = (double)verticesf[i];
+      }
+    for (uint32_t i = 0; i < nr_of_triangles * 3; ++i)
+      {
+      triangles[i] = (uint64_t)triangles32[i];
+      }
+
+    trico_free(verticesf);
+    trico_free(triangles32);
+
+    void* arch = open_archive_for_writing("stltest.trc");
+    write_vertices(arch, nr_of_vertices, vertices);
+    write_triangles(arch, nr_of_triangles, triangles);
+    close_archive(arch);
+
+    arch = open_archive_for_reading("stltest.trc");
+    TEST_EQ(vertex_double_stream, get_next_stream_type(arch));
+
+    double* vertices_read;
+    uint32_t nr_of_vertices_read;
+    TEST_ASSERT(read_vertices(arch, &nr_of_vertices_read, &vertices_read));
+
+    TEST_EQ(nr_of_vertices, nr_of_vertices_read);
+
+    for (uint32_t i = 0; i < nr_of_vertices * 3; ++i)
+      {
+      TEST_EQ(vertices[i], vertices_read[i]);
+      }
+
+    trico_free(vertices_read);
+    
+    delete[] vertices;
+
+    TEST_EQ(triangle_uint64_stream, get_next_stream_type(arch));
+
+    uint64_t* triangles_read;
+    uint32_t nr_of_triangles_read;
+    TEST_ASSERT(read_triangles(arch, &nr_of_triangles_read, &triangles_read));
+
+    TEST_EQ(nr_of_triangles, nr_of_triangles_read);
+
+    for (uint32_t i = 0; i < nr_of_triangles * 3; ++i)
+      {
+      TEST_EQ(triangles[i], triangles_read[i]);
+      }
+
+    trico_free(triangles_read);
+    
+    delete[] triangles;
+
+    TEST_EQ(empty, get_next_stream_type(arch));
+
+    close_archive(arch);
+
+
+    std::cout << "********************************************\n";
+    }
   }
 
 
@@ -89,4 +162,5 @@ void run_all_trico_compression_tests()
   test_header();
   test_stl("data/StanfordBunny.stl");
   //test_stl("D:/stl/kouros.stl");
+  test_stl_double_64("data/StanfordBunny.stl");
   }

@@ -215,4 +215,42 @@ namespace trico
       (*indices)[i] = index;
       }
     }
+
+  void transpose_uint64_aos_to_soa(uint8_t** b1, uint8_t** b2, uint8_t** b3, uint8_t** b4, uint8_t** b5, uint8_t** b6, uint8_t** b7, uint8_t** b8, const uint64_t* indices, uint32_t nr_of_indices)
+    {
+    *b1 = (uint8_t*)trico_malloc(nr_of_indices);
+    *b2 = (uint8_t*)trico_malloc(nr_of_indices);
+    *b3 = (uint8_t*)trico_malloc(nr_of_indices);
+    *b4 = (uint8_t*)trico_malloc(nr_of_indices);
+    *b5 = (uint8_t*)trico_malloc(nr_of_indices);
+    *b6 = (uint8_t*)trico_malloc(nr_of_indices);
+    *b7 = (uint8_t*)trico_malloc(nr_of_indices);
+    *b8 = (uint8_t*)trico_malloc(nr_of_indices);
+    uint32_t treated = 0;
+
+    for (uint32_t i = treated; i < nr_of_indices; ++i)
+      {
+      uint64_t index = *indices++;
+      (*b1)[i] = index & 0xff;
+      (*b2)[i] = (index >> 8) & 0xff;
+      (*b3)[i] = (index >> 16) & 0xff;
+      (*b4)[i] = (index >> 24) & 0xff;
+      (*b5)[i] = (index >> 32) & 0xff;
+      (*b6)[i] = (index >> 40) & 0xff;
+      (*b7)[i] = (index >> 48) & 0xff;
+      (*b8)[i] = (index >> 56) & 0xff;
+      }
+    }
+
+  void transpose_uint64_soa_to_aos(uint64_t** indices, const uint8_t* b1, const uint8_t* b2, const uint8_t* b3, const uint8_t* b4, const uint8_t* b5, const uint8_t* b6, const uint8_t* b7, const uint8_t* b8, uint32_t nr_of_indices)
+    {
+    *indices = (uint64_t*)trico_malloc(nr_of_indices * 8);
+    uint32_t treated = 0;
+    for (uint32_t i = treated; i < nr_of_indices; ++i)
+      {
+      const uint64_t index = (uint64_t)(*b1++) | (uint64_t)(*b2++) << 8 | (uint64_t)(*b3++) << 16 | (uint64_t)(*b4++) << 24 | (uint64_t)(*b5++) << 32 | (uint64_t)(*b6++) << 40 | (uint64_t)(*b7++) << 48 | (uint64_t)(*b8++) << 56;
+      (*indices)[i] = index;
+      }
+    }
+
   }

@@ -19,4 +19,7 @@ namespace trico
 
   TRICO_API void transpose_uint32_soa_to_aos(uint32_t** indices, const uint8_t* b1, const uint8_t* b2, const uint8_t* b3, const uint8_t* b4, uint32_t nr_of_indices);
 
+  TRICO_API void transpose_uint64_aos_to_soa(uint8_t** b1, uint8_t** b2, uint8_t** b3, uint8_t** b4, uint8_t** b5, uint8_t** b6, uint8_t** b7, uint8_t** b8, const uint64_t* indices, uint32_t nr_of_indices);
+
+  TRICO_API void transpose_uint64_soa_to_aos(uint64_t** indices, const uint8_t* b1, const uint8_t* b2, const uint8_t* b3, const uint8_t* b4, const uint8_t* b5, const uint8_t* b6, const uint8_t* b7, const uint8_t* b8, uint32_t nr_of_indices);
   }

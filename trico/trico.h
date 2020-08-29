@@ -15,13 +15,15 @@ namespace trico
     triangle_uint64_stream
     };
 
-  TRICO_API void* open_writable_archive(const char* filename);
+  TRICO_API void* open_archive_for_writing(const char* filename);
 
-  TRICO_API void* open_readable_archive(const char* filename);
+  TRICO_API void* open_archive_for_reading(const char* filename);
 
   TRICO_API void close_archive(void* archive);
 
   TRICO_API void write_vertices(void* archive, uint32_t nr_of_vertices, const float* vertices);
+
+  TRICO_API void write_vertices(void* archive, uint32_t nr_of_vertices, const double* vertices);
   
   TRICO_API void write_triangles(void* archive, uint32_t nr_of_triangles, const uint32_t* tria_indices);
 

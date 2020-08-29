@@ -13,10 +13,10 @@ namespace trico
 
   void test_header()
     {
-    void* arch = open_writable_archive("header.trc");
+    void* arch = open_archive_for_writing("header.trc");
     close_archive(arch);
 
-    arch = open_readable_archive("header.trc");
+    arch = open_archive_for_reading("header.trc");
     TEST_ASSERT(arch != nullptr);
     uint32_t version = get_version(arch);
     TEST_EQ(0, version);
@@ -34,12 +34,12 @@ namespace trico
 
     TEST_EQ(0, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
-    void* arch = open_writable_archive("stltest.trc");
+    void* arch = open_archive_for_writing("stltest.trc");
     write_vertices(arch, nr_of_vertices, vertices);
     write_triangles(arch, nr_of_triangles, triangles);
     close_archive(arch);  
 
-    arch = open_readable_archive("stltest.trc");
+    arch = open_archive_for_reading("stltest.trc");
     TEST_EQ(vertex_float_stream, get_next_stream_type(arch));
     
     float* vertices_read;

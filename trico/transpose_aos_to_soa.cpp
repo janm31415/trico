@@ -77,6 +77,35 @@ namespace trico
       }
     }
 
+  void transpose_xyz_aos_to_soa(double** x, double** y, double** z, const double* vertices, uint32_t nr_of_vertices)
+    {
+    *x = (double*)trico_malloc(sizeof(double)*nr_of_vertices);
+    *y = (double*)trico_malloc(sizeof(double)*nr_of_vertices);
+    *z = (double*)trico_malloc(sizeof(double)*nr_of_vertices);
+
+    uint32_t treated = 0;
+
+    for (uint32_t i = treated; i < nr_of_vertices; ++i)
+      {
+      (*x)[i] = *vertices++;
+      (*y)[i] = *vertices++;
+      (*z)[i] = *vertices++;
+      }
+    }
+
+
+  void transpose_xyz_soa_to_aos(double** vertices, const double* x, const double* y, const double* z, uint32_t nr_of_vertices)
+    {
+    *vertices = (double*)trico_malloc(sizeof(double)*nr_of_vertices * 3);
+    uint32_t treated = 0;
+
+    for (uint32_t i = treated; i < nr_of_vertices; ++i)
+      {
+      (*vertices)[i * 3] = *x++;
+      (*vertices)[i * 3 + 1] = *y++;
+      (*vertices)[i * 3 + 2] = *z++;
+      }
+    }
 
   void transpose_uint32_aos_to_soa(uint8_t** b1, uint8_t** b2, uint8_t** b3, uint8_t** b4, const uint32_t* indices, uint32_t nr_of_indices)
     {

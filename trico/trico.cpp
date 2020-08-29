@@ -54,7 +54,7 @@ namespace trico
       }
     }
 
-  void* open_writable_archive(const char* filename)
+  void* open_archive_for_writing(const char* filename)
     {
     archive* arch = new archive();
     arch->f = fopen(filename, "wb");
@@ -67,7 +67,7 @@ namespace trico
     return arch;
     }
 
-  void* open_readable_archive(const char* filename)
+  void* open_archive_for_reading(const char* filename)
     {
     archive* arch = new archive();
     arch->f = fopen(filename, "rb");
@@ -124,6 +124,45 @@ namespace trico
 
     uint32_t nr_of_compressed_z_bytes;
     uint8_t* compressed_z;    
+    compress(&nr_of_compressed_z_bytes, &compressed_z, z, nr_of_vertices);
+
+    trico_free(z);
+    fwrite(&nr_of_compressed_z_bytes, sizeof(uint32_t), 1, arch->f);
+    fwrite(compressed_z, 1, nr_of_compressed_z_bytes, arch->f);
+    trico_free(compressed_z);
+    }
+
+  void write_vertices(void* a, uint32_t nr_of_vertices, const double* vertices)
+    {
+    archive* arch = (archive*)a;
+    uint8_t header = (uint8_t)vertex_double_stream;
+    fwrite(&header, 1, 1, arch->f);
+
+    double* x;
+    double* y;
+    double* z;
+    transpose_xyz_aos_to_soa(&x, &y, &z, vertices, nr_of_vertices);
+
+    uint32_t nr_of_compressed_x_bytes;
+    uint8_t* compressed_x;
+    compress(&nr_of_compressed_x_bytes, &compressed_x, x, nr_of_vertices);
+
+    trico_free(x);
+    fwrite(&nr_of_compressed_x_bytes, sizeof(uint32_t), 1, arch->f);
+    fwrite(compressed_x, 1, nr_of_compressed_x_bytes, arch->f);
+    trico_free(compressed_x);
+
+    uint32_t nr_of_compressed_y_bytes;
+    uint8_t* compressed_y;
+    compress(&nr_of_compressed_y_bytes, &compressed_y, y, nr_of_vertices);
+
+    trico_free(y);
+    fwrite(&nr_of_compressed_y_bytes, sizeof(uint32_t), 1, arch->f);
+    fwrite(compressed_y, 1, nr_of_compressed_y_bytes, arch->f);
+    trico_free(compressed_y);
+
+    uint32_t nr_of_compressed_z_bytes;
+    uint8_t* compressed_z;
     compress(&nr_of_compressed_z_bytes, &compressed_z, z, nr_of_vertices);
 
     trico_free(z);

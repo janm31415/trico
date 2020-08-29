@@ -139,21 +139,11 @@ namespace trico
     write_vertices(arch, nr_of_vertices, vertices);
     write_triangles(arch, nr_of_triangles, triangles);
 
-    std::ofstream outfile;
-    outfile.open("stltest.trc", std::ios::binary | std::ios::out);
-    outfile.write((const char*)get_buffer_pointer(arch), get_size(arch));
-    outfile.close();
+    uint64_t length = get_size(arch);
+    char* data = new char[length];
+    memcpy(data, get_buffer_pointer(arch), length);
 
     close_archive(arch);
-
-    std::ifstream infile;
-    infile.open("stltest.trc", std::ios::binary | std::ios::in);
-    infile.seekg(0, std::ios::end);
-    uint64_t length = (uint64_t)infile.tellg();
-    infile.seekg(0, std::ios::beg);
-    char *data = new char[length];
-    infile.read(data, length);
-    infile.close();
 
     arch = open_archive_for_reading((const uint8_t*)data, length);
     TEST_EQ(vertex_double_stream, get_next_stream_type(arch));

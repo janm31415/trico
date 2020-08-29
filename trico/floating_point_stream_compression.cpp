@@ -79,20 +79,12 @@ namespace trico
 
     inline uint32_t compute_hash1(uint32_t hash, uint32_t value, uint32_t hash_size_exponent, uint32_t hash_mask)
       {
-      //return (((hash >> (32 - HASH1_SIZE_EXPONENT)) << HASH1_SIZE_EXPONENT) ^ (value >> (32 - HASH1_SIZE_EXPONENT)))& HASH1_MASK;
-      //return ((hash << (HASH1_SIZE_EXPONENT/2))^(value >> (32 - HASH1_SIZE_EXPONENT))) & HASH1_MASK;
-      //return ((hash << HASH1_SIZE_EXPONENT) ^ (value >> (32 - HASH1_SIZE_EXPONENT))) & HASH1_MASK;
       return ((hash << (hash_size_exponent)) ^ (value >> (32 - hash_size_exponent))) & hash_mask;
-      //return ((hash << 6) ^ (value >> 23)) & HASH1_MASK;
       }
 
     inline uint32_t compute_hash2(uint32_t hash, uint32_t value, uint32_t hash_size_exponent, uint32_t hash_mask)
       {
-      //return (((hash >> (32 - HASH2_SIZE_EXPONENT)) << HASH2_SIZE_EXPONENT) ^ (value >> (32 - HASH2_SIZE_EXPONENT)))& HASH2_MASK;
-      //return ((hash << (HASH2_SIZE_EXPONENT/2)) ^ (value >> (32 - HASH2_SIZE_EXPONENT))) & HASH2_MASK;
-      //return ((hash << HASH1_SIZE_EXPONENT) ^ (value >> (32 - HASH2_SIZE_EXPONENT))) & HASH2_MASK;
       return ((hash << (hash_size_exponent / 2)) ^ (value >> (32 - hash_size_exponent))) & hash_mask;
-      //return ((hash << 6) ^ (value >> (32 - HASH2_SIZE_EXPONENT))) & HASH2_MASK;
       }
 
     }
@@ -584,19 +576,11 @@ namespace trico
     inline uint64_t compute_hash1(uint64_t hash, uint64_t value, uint64_t hash1_size_exponent, uint64_t hash1_mask)
       {
       return ((hash << hash1_size_exponent) ^ (value >> (64 - hash1_size_exponent))) & hash1_mask;
-      //return ((hash* 536543687117 << 20) ^ (value >> (64 - HASH1D_SIZE_EXPONENT))) & HASH1D_MASK;
-      //return ((hash << 6) ^ (value)) & HASH1D_MASK;
-      //return ((hash << 6) ^ (value >> 48)) & HASH1D_MASK;
-      //return ((hash<<4) ^ (value >> 48)) & HASH1D_MASK;
       }
 
     inline uint64_t compute_hash2(uint64_t hash, uint64_t value, uint64_t hash2_size_exponent, uint64_t hash2_mask)
       {
       return ((hash << hash2_size_exponent / 2) ^ (value >> (64 - hash2_size_exponent))) & hash2_mask;
-      //return ((hash* 536543687117 << 20) ^ (value >> (64 - HASH2D_SIZE_EXPONENT))) & HASH2D_MASK;
-      //  ((dhash << 2) ^ ((unsigned long long)stride >> 40)) & HASH_MASK;
-      //return ((hash << 2) ^ (value)) & HASH2D_MASK;
-      //return ((hash<<4) ^ (value >> 40)) & HASH2D_MASK;
       }
     }
 

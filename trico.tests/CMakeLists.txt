@@ -29,6 +29,10 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
 add_definitions(-DMEMORY_LEAK_TRACKING)
 
+if (${TRICO_SHARED} STREQUAL "yes")
+add_definitions(-DTRICO_DLL_IMPORT)
+endif (${TRICO_SHARED} STREQUAL "yes")
+
 add_executable(trico.tests ${HDRS} ${SRCS})
 source_group("Header Files" FILES ${hdrs})
 source_group("Source Files" FILES ${srcs})

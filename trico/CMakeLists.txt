@@ -9,10 +9,10 @@ trico.h
 )
 	
 set(SRCS
-floating_point_stream_compression.cpp
-iostl.cpp
-transpose_aos_to_soa.cpp
-trico.cpp
+floating_point_stream_compression.c
+iostl.c
+transpose_aos_to_soa.c
+trico.c
 )
 
 if (WIN32)
@@ -26,7 +26,7 @@ endif (WIN32)
 add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
-add_library(trico SHARED ${HDRS} ${SRCS})
+add_library(trico STATIC ${HDRS} ${SRCS})
 source_group("Header Files" FILES ${hdrs})
 source_group("Source Files" FILES ${srcs})
 

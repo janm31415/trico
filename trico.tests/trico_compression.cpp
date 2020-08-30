@@ -184,6 +184,6 @@ void test_stl_double_64(const char* filename)
 void run_all_trico_compression_tests()
   {
   test_header();
-  test_stl("data/stanfordbunny.stl");
-  test_stl_double_64("data/stanfordbunny.stl");
+  test_stl("data/StanfordBunny.stl");
+  test_stl_double_64("data/StanfordBunny.stl");
   }

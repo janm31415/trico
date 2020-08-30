@@ -48,7 +48,13 @@ target_link_libraries(trico.tests
     zlib
     lz4
     )	
-    
+  
+if (WIN32)
 add_custom_command(TARGET trico.tests POST_BUILD 
    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/data" ${CMAKE_CURRENT_BINARY_DIR}/data)
-    
+endif (WIN32)    
+
+if (UNIX)
+add_custom_command(TARGET trico.tests POST_BUILD 
+   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/data" "$<TARGET_FILE_DIR:trico.tests>/data")
+endif (UNIX)

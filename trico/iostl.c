@@ -35,7 +35,11 @@ static inline void trico_swap_vertices(float* a, float* b)
 static uint64_t trico_partition_vertices(float* L, int64_t left, int64_t right)
   {
   int64_t pivot = right;
-  float p_val[4] = { L[pivot * 4], L[pivot * 4 + 1], L[pivot * 4 + 2], L[pivot * 4 + 3] };
+  float p_val[4];
+  p_val[0] = L[pivot * 4];
+  p_val[1] = L[pivot * 4 + 1];
+  p_val[2] = L[pivot * 4 + 2];
+  p_val[3] = L[pivot * 4 + 3];
 
   int64_t i = (left - 1);
   for (int64_t j = left; j < right; ++j)
@@ -131,7 +135,7 @@ void trico_remove_duplicate_vertices(uint32_t* nr_of_vertices, float** vertices,
   }
 
 
-int read_stl(uint32_t* nr_of_vertices, float** vertices, uint32_t* nr_of_triangles, uint32_t** triangles, const char* filename)
+int trico_read_stl(uint32_t* nr_of_vertices, float** vertices, uint32_t* nr_of_triangles, uint32_t** triangles, const char* filename)
   {
   *vertices = NULL;
   *triangles = NULL;

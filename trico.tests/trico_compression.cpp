@@ -48,7 +48,7 @@ void test_stl(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   void* arch = trico_open_archive_for_writing(1024 * 1024);
   trico_write_vertices(arch, nr_of_vertices, vertices);
@@ -115,7 +115,7 @@ void test_stl_double_64(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles32;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &verticesf, &nr_of_triangles, &triangles32, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &verticesf, &nr_of_triangles, &triangles32, filename));
 
   double* vertices = new double[nr_of_vertices * 3];
   uint64_t* triangles = new uint64_t[nr_of_triangles * 3];

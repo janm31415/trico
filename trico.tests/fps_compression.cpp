@@ -39,7 +39,7 @@ void transpose_xyz_aos_to_soa(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
   float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
@@ -84,7 +84,7 @@ void compress_vertices_double(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
   float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
@@ -170,7 +170,7 @@ void compress_vertices(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
   float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
@@ -242,7 +242,7 @@ void compress_vertices_and_zlib(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
   float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
@@ -358,7 +358,7 @@ void compress_vertices_no_swizzling(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
 
   uint32_t nr_of_compressed_bytes;
@@ -390,7 +390,7 @@ void compress_vertices_zlib(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
   float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
@@ -516,7 +516,7 @@ void compress_vertices_lz4(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
   float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);

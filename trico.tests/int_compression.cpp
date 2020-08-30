@@ -39,7 +39,7 @@ void transpose_uint32_aos_to_soa(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   uint8_t* b1 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   uint8_t* b2 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
@@ -80,7 +80,7 @@ void compress_triangles_lz4(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   uint8_t* b1 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   uint8_t* b2 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
@@ -165,7 +165,7 @@ void compress_triangles_lz4_no_shuffling(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   uint32_t total_length = 0;
   {
@@ -194,7 +194,7 @@ void compress_triangles_zlib(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   uint8_t* b1 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   uint8_t* b2 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
@@ -318,7 +318,7 @@ void compress_triangles_zlib_no_shuffling(const char* filename)
   uint32_t nr_of_triangles;
   uint32_t* triangles;
 
-  TEST_EQ(1, read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
+  TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   uint32_t total_length = 0;
   z_stream defstream;

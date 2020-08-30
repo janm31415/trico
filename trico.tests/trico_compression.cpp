@@ -9,6 +9,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <cstring>
+
 void test_header()
   {
   void* arch = trico_open_archive_for_writing(1024);

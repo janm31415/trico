@@ -9,17 +9,17 @@ extern "C" {
 #include <stdint.h>
 
 
-inline void* trico_malloc(size_t size)
+static inline void* trico_malloc(size_t size)
   {
   return malloc(size);
   }
 
-inline void* trico_realloc(void* ptr, size_t new_size)
+static inline void* trico_realloc(void* ptr, size_t new_size)
   {
   return realloc(ptr, new_size);
   }
 
-inline void trico_free(void* ptr)
+static inline void trico_free(void* ptr)
   {
   free(ptr);
   }

@@ -21,10 +21,10 @@ TRICO_API void* trico_open_archive_for_writing(uint64_t initial_buffer_size);
 TRICO_API void* trico_open_archive_for_reading(const uint8_t* data, uint64_t data_size);
 TRICO_API void trico_close_archive(void* archive);
 
-TRICO_API void trico_write_vertices(void* archive, uint32_t nr_of_vertices, const float* vertices);
-TRICO_API void trico_write_vertices_double(void* archive, uint32_t nr_of_vertices, const double* vertices);
-TRICO_API void trico_write_triangles(void* archive, uint32_t nr_of_triangles, const uint32_t* tria_indices);
-TRICO_API void trico_write_triangles_long(void* archive, uint32_t nr_of_triangles, const uint64_t* tria_indices);
+TRICO_API int trico_write_vertices(void* archive, uint32_t nr_of_vertices, const float* vertices);
+TRICO_API int trico_write_vertices_double(void* archive, uint32_t nr_of_vertices, const double* vertices);
+TRICO_API int trico_write_triangles(void* archive, uint32_t nr_of_triangles, const uint32_t* tria_indices);
+TRICO_API int trico_write_triangles_long(void* archive, uint32_t nr_of_triangles, const uint64_t* tria_indices);
 
 TRICO_API uint8_t* trico_get_buffer_pointer(void* archive);
 TRICO_API uint64_t trico_get_size(void* archive);

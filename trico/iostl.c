@@ -64,7 +64,7 @@ static void trico_quicksort_vertices(float* L, int64_t start, int64_t end)
   trico_quicksort_vertices(L, splitPoint + 1, end);
   }
 
-void trico_remove_duplicate_vertices(uint32_t* nr_of_vertices, float** vertices, uint32_t nr_of_triangles, uint32_t** triangles)
+static void trico_remove_duplicate_vertices(uint32_t* nr_of_vertices, float** vertices, uint32_t nr_of_triangles, uint32_t** triangles)
   {
   if (nr_of_triangles == 0)
     return;

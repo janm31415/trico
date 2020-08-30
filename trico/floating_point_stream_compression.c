@@ -9,7 +9,7 @@ Martin Burtscher and Paruj Ratanaworabhan.
 Adapted to 32-bit floating point values.
 */
 
-inline void trico_fill_code(uint8_t** out, uint32_t* xor1, uint32_t* xor2, uint32_t* bcode)
+static inline void trico_fill_code(uint8_t** out, uint32_t* xor1, uint32_t* xor2, uint32_t* bcode)
   {
   uint32_t bc = (bcode[7] << 21) | (bcode[6] << 18) | (bcode[5] << 15) | (bcode[4] << 12) | (bcode[3] << 9) | (bcode[2] << 6) | (bcode[1] << 3) | bcode[0];
 
@@ -73,17 +73,15 @@ inline void trico_fill_code(uint8_t** out, uint32_t* xor1, uint32_t* xor2, uint3
     }
   }
 
-inline uint32_t trico_compute_hash1_32(uint32_t hash, uint32_t value, uint32_t hash_size_exponent, uint32_t hash_mask)
+static inline uint32_t trico_compute_hash1_32(uint32_t hash, uint32_t value, uint32_t hash_size_exponent, uint32_t hash_mask)
   {
   return ((hash << (hash_size_exponent)) ^ (value >> (32 - hash_size_exponent))) & hash_mask;
   }
 
-inline uint32_t trico_compute_hash2_32(uint32_t hash, uint32_t value, uint32_t hash_size_exponent, uint32_t hash_mask)
+static inline uint32_t trico_compute_hash2_32(uint32_t hash, uint32_t value, uint32_t hash_size_exponent, uint32_t hash_mask)
   {
   return ((hash << (hash_size_exponent / 2)) ^ (value >> (32 - hash_size_exponent))) & hash_mask;
   }
-
-
 
 void trico_compress(uint32_t* nr_of_compressed_bytes, uint8_t** out, const float* input, const uint32_t number_of_floats, uint32_t hash1_size_exponent, uint32_t hash2_size_exponent)
   {
@@ -420,7 +418,7 @@ void trico_decompress(uint32_t* number_of_floats, float** out, const uint8_t* co
 
 
 
-inline void trico_fill_code_double(uint8_t** out, uint64_t* xor1, uint64_t* xor2, uint64_t* bcode)
+static inline void trico_fill_code_double(uint8_t** out, uint64_t* xor1, uint64_t* xor2, uint64_t* bcode)
   {
   uint8_t bc = (uint8_t)((bcode[1] << 4) | bcode[0]);
 
@@ -564,12 +562,12 @@ inline void trico_fill_code_double(uint8_t** out, uint64_t* xor1, uint64_t* xor2
 
 
 
-inline uint64_t trico_compute_hash1_64(uint64_t hash, uint64_t value, uint64_t hash1_size_exponent, uint64_t hash1_mask)
+static inline uint64_t trico_compute_hash1_64(uint64_t hash, uint64_t value, uint64_t hash1_size_exponent, uint64_t hash1_mask)
   {
   return ((hash << hash1_size_exponent) ^ (value >> (64 - hash1_size_exponent))) & hash1_mask;
   }
 
-inline uint64_t trico_compute_hash2_64(uint64_t hash, uint64_t value, uint64_t hash2_size_exponent, uint64_t hash2_mask)
+static inline uint64_t trico_compute_hash2_64(uint64_t hash, uint64_t value, uint64_t hash2_size_exponent, uint64_t hash2_mask)
   {
   return ((hash << hash2_size_exponent / 2) ^ (value >> (64 - hash2_size_exponent))) & hash2_mask;
   }

@@ -9,9 +9,8 @@
 #include <assert.h>
 
 
-struct archive
-  {
-  //archive() : buffer(nullptr), buffer_pointer(nullptr), data(nullptr), data_pointer(nullptr), version(0), next_stream_type(empty), buffer_size(0), data_size(0), size_available(0), writable(0) {}
+struct trico_archive
+  {  
   uint8_t* buffer;
   uint8_t* buffer_pointer;
   const uint8_t* data;
@@ -24,12 +23,12 @@ struct archive
   int writable;
   };
 
-int sufficient_buffer_available(struct archive* arch, uint64_t bytes_needed)
+static int sufficient_buffer_available(struct trico_archive* arch, uint64_t bytes_needed)
   {
   return arch->size_available >= bytes_needed ? 1 : 0;
   }
 
-int buffer_ready_for_writing(struct archive* arch, uint64_t bytes_needed)
+static int buffer_ready_for_writing(struct trico_archive* arch, uint64_t bytes_needed)
   {
   if (!arch->writable)
     return 0;
@@ -47,7 +46,7 @@ int buffer_ready_for_writing(struct archive* arch, uint64_t bytes_needed)
   return 1;
   }
 
-void write_unsafe(const void* buf, uint64_t element_size, uint64_t element_count, struct archive* arch)
+static void write_unsafe(const void* buf, uint64_t element_size, uint64_t element_count, struct trico_archive* arch)
   {
   uint64_t sz = element_size * element_count;
   memcpy(arch->buffer_pointer, buf, sz);
@@ -55,37 +54,40 @@ void write_unsafe(const void* buf, uint64_t element_size, uint64_t element_count
   arch->size_available -= sz;
   }
 
-void write(const void* buf, uint64_t element_size, uint64_t element_count, struct archive* arch)
+static int write(const void* buf, uint64_t element_size, uint64_t element_count, struct trico_archive* arch)
   {
-  if (buffer_ready_for_writing(arch, element_size * element_count))
-    write_unsafe(buf, element_size, element_count, arch);
+  if (!buffer_ready_for_writing(arch, element_size * element_count))
+    return 0;
+  write_unsafe(buf, element_size, element_count, arch);
+  return 1;
   }
 
-void read(void* buf, uint64_t element_size, uint64_t element_count, struct archive* arch)
+static int read(void* buf, uint64_t element_size, uint64_t element_count, struct trico_archive* arch)
   {
   if (arch->writable)
-    return; //throw std::runtime_error("archive is write-only");
+    return 0; 
   uint64_t sz = element_size * element_count;
   uint64_t data_read = arch->data_pointer - arch->data;
   if ((data_read + sz) > arch->data_size)
-    return; //throw std::runtime_error("out of bounds");
+    return 0; 
   memcpy(buf, arch->data_pointer, sz);
   arch->data_pointer += sz;
+  return 1;
   }
 
-
-void read_inplace(void* buf, uint64_t element_size, uint64_t element_count, struct archive* arch)
+static int read_inplace(void* buf, uint64_t element_size, uint64_t element_count, struct trico_archive* arch)
   {
   if (arch->writable)
-    return; // throw std::runtime_error("archive is write-only");
+    return 0; 
   uint64_t sz = element_size * element_count;
   uint64_t data_read = arch->data_pointer - arch->data;
   if ((data_read + sz) > arch->data_size)
-    return; // throw std::runtime_error("out of bounds");
+    return 0; 
   memcpy(buf, arch->data_pointer, sz);
+  return 1;
   }
 
-int write_header(struct archive* arch)
+static int write_header(struct trico_archive* arch)
   {
   if (buffer_ready_for_writing(arch, 8) == 0)
     return 0;
@@ -95,7 +97,7 @@ int write_header(struct archive* arch)
   return 1;
   }
 
-void read_next_stream_type(struct archive* arch)
+static void read_next_stream_type(struct trico_archive* arch)
   {
   assert(!arch->writable);
   if ((uint64_t)(arch->data_pointer - arch->data) < arch->data_size)
@@ -106,23 +108,24 @@ void read_next_stream_type(struct archive* arch)
     arch->next_stream_type = empty;
   }
 
-int read_header(struct archive* arch)
+static int read_header(struct trico_archive* arch)
   {
   uint32_t Trco;
-  read(&Trco, sizeof(uint32_t), 1, arch);
+  if (!read(&Trco, sizeof(uint32_t), 1, arch))
+    return 0;
   if (Trco != 0x6f637254) // not a trico file
     {
     return 0;
     }
-  read(&(arch->version), sizeof(uint32_t), 1, arch); // version number
+  if (!read(&(arch->version), sizeof(uint32_t), 1, arch))
+    return 0;
   read_next_stream_type(arch);
   return 1;
   }
 
-
 void* trico_open_archive_for_writing(uint64_t initial_buffer_size)
   {
-  struct archive* arch = (struct archive*)trico_malloc(sizeof(struct archive));
+  struct trico_archive* arch = (struct trico_archive*)trico_malloc(sizeof(struct trico_archive));
   arch->buffer = NULL;
   arch->buffer_pointer = NULL;
   arch->data = NULL;
@@ -154,7 +157,7 @@ void* trico_open_archive_for_writing(uint64_t initial_buffer_size)
 
 void* trico_open_archive_for_reading(const uint8_t* data, uint64_t data_size)
   {
-  struct archive* arch = (struct archive*)trico_malloc(sizeof(struct archive));
+  struct trico_archive* arch = (struct trico_archive*)trico_malloc(sizeof(struct trico_archive));
   arch->buffer = NULL;
   arch->buffer_pointer = NULL;
   arch->data = NULL;
@@ -179,7 +182,7 @@ void* trico_open_archive_for_reading(const uint8_t* data, uint64_t data_size)
 
 void trico_close_archive(void* a)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   if (arch->buffer)
     trico_free(arch->buffer);
   trico_free(arch);
@@ -187,34 +190,36 @@ void trico_close_archive(void* a)
 
 uint8_t* trico_get_buffer_pointer(void* a)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   return arch->buffer;
   }
 
 uint64_t trico_get_size(void* a)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   return arch->buffer_size - arch->size_available;
   }
 
 uint32_t trico_get_version(void* a)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   return arch->version;
   }
 
 enum e_stream_type trico_get_next_stream_type(void* a)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   return arch->next_stream_type;
   }
 
-void trico_write_vertices(void* a, uint32_t nr_of_vertices, const float* vertices)
+int trico_write_vertices(void* a, uint32_t nr_of_vertices, const float* vertices)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   uint8_t header = (uint8_t)vertex_float_stream;
-  write(&header, 1, 1, arch);
-  write(&nr_of_vertices, sizeof(uint32_t), 1, arch);
+  if (!write(&header, 1, 1, arch))
+    return 0;
+  if (!write(&nr_of_vertices, sizeof(uint32_t), 1, arch))
+    return 0;
 
   float* x = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
   float* y = (float*)trico_malloc(sizeof(float)*nr_of_vertices);
@@ -226,8 +231,10 @@ void trico_write_vertices(void* a, uint32_t nr_of_vertices, const float* vertice
   trico_compress(&nr_of_compressed_x_bytes, &compressed_x, x, nr_of_vertices, 4, 10);
 
   trico_free(x);
-  write(&nr_of_compressed_x_bytes, sizeof(uint32_t), 1, arch);
-  write(compressed_x, 1, nr_of_compressed_x_bytes, arch);
+  if (!write(&nr_of_compressed_x_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_x, 1, nr_of_compressed_x_bytes, arch))
+    return 0;
   trico_free(compressed_x);
 
   uint32_t nr_of_compressed_y_bytes;
@@ -235,8 +242,10 @@ void trico_write_vertices(void* a, uint32_t nr_of_vertices, const float* vertice
   trico_compress(&nr_of_compressed_y_bytes, &compressed_y, y, nr_of_vertices, 4, 10);
 
   trico_free(y);
-  write(&nr_of_compressed_y_bytes, sizeof(uint32_t), 1, arch);
-  write(compressed_y, 1, nr_of_compressed_y_bytes, arch);
+  if (!write(&nr_of_compressed_y_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_y, 1, nr_of_compressed_y_bytes, arch))
+    return 0;
   trico_free(compressed_y);
 
   uint32_t nr_of_compressed_z_bytes;
@@ -244,18 +253,22 @@ void trico_write_vertices(void* a, uint32_t nr_of_vertices, const float* vertice
   trico_compress(&nr_of_compressed_z_bytes, &compressed_z, z, nr_of_vertices, 4, 10);
 
   trico_free(z);
-  write(&nr_of_compressed_z_bytes, sizeof(uint32_t), 1, arch);
-  write(compressed_z, 1, nr_of_compressed_z_bytes, arch);
+  if (!write(&nr_of_compressed_z_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_z, 1, nr_of_compressed_z_bytes, arch))
+    return 0;
   trico_free(compressed_z);
+  return 1;
   }
 
-
-void trico_write_triangles(void* a, uint32_t nr_of_triangles, const uint32_t* tria_indices)
+int trico_write_triangles(void* a, uint32_t nr_of_triangles, const uint32_t* tria_indices)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   uint8_t header = (uint8_t)triangle_uint32_stream;
-  write(&header, 1, 1, arch);
-  write(&nr_of_triangles, sizeof(uint32_t), 1, arch);
+  if (!write(&header, 1, 1, arch))
+    return 0;
+  if (!write(&nr_of_triangles, sizeof(uint32_t), 1, arch))
+    return 0;
 
   uint8_t* b1 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   uint8_t* b2 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
@@ -263,7 +276,6 @@ void trico_write_triangles(void* a, uint32_t nr_of_triangles, const uint32_t* tr
   uint8_t* b4 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
 
   trico_transpose_uint32_aos_to_soa(&b1, &b2, &b3, &b4, tria_indices, nr_of_triangles * 3);
-
 
   LZ4_stream_t lz4Stream_body;
   LZ4_stream_t* lz4Stream = &lz4Stream_body;
@@ -273,20 +285,28 @@ void trico_write_triangles(void* a, uint32_t nr_of_triangles, const uint32_t* tr
   uint8_t* compressed_buf = (uint8_t*)trico_malloc(estimateLen);
 
   uint32_t bytes_written = (uint32_t)LZ4_compress_default((const char*)b1, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   bytes_written = (uint32_t)LZ4_compress_default((const char*)b2, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   bytes_written = (uint32_t)LZ4_compress_default((const char*)b3, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   bytes_written = (uint32_t)LZ4_compress_default((const char*)b4, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   trico_free(compressed_buf);
 
@@ -294,14 +314,18 @@ void trico_write_triangles(void* a, uint32_t nr_of_triangles, const uint32_t* tr
   trico_free(b2);
   trico_free(b3);
   trico_free(b4);
+
+  return 1;
   }
 
-void trico_write_vertices_double(void* a, uint32_t nr_of_vertices, const double* vertices)
+int trico_write_vertices_double(void* a, uint32_t nr_of_vertices, const double* vertices)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   uint8_t header = (uint8_t)vertex_double_stream;
-  write(&header, 1, 1, arch);
-  write(&nr_of_vertices, sizeof(uint32_t), 1, arch);
+  if (!write(&header, 1, 1, arch))
+    return 0;
+  if (!write(&nr_of_vertices, sizeof(uint32_t), 1, arch))
+    return 0;
 
   double* x = (double*)trico_malloc(sizeof(double)*nr_of_vertices);
   double* y = (double*)trico_malloc(sizeof(double)*nr_of_vertices);
@@ -313,8 +337,10 @@ void trico_write_vertices_double(void* a, uint32_t nr_of_vertices, const double*
   trico_compress_double_precision(&nr_of_compressed_x_bytes, &compressed_x, x, nr_of_vertices, 20, 20);
 
   trico_free(x);
-  write(&nr_of_compressed_x_bytes, sizeof(uint32_t), 1, arch);
-  write(compressed_x, 1, nr_of_compressed_x_bytes, arch);
+  if (!write(&nr_of_compressed_x_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_x, 1, nr_of_compressed_x_bytes, arch))
+    return 0;
   trico_free(compressed_x);
 
   uint32_t nr_of_compressed_y_bytes;
@@ -322,8 +348,10 @@ void trico_write_vertices_double(void* a, uint32_t nr_of_vertices, const double*
   trico_compress_double_precision(&nr_of_compressed_y_bytes, &compressed_y, y, nr_of_vertices, 20, 20);
 
   trico_free(y);
-  write(&nr_of_compressed_y_bytes, sizeof(uint32_t), 1, arch);
-  write(compressed_y, 1, nr_of_compressed_y_bytes, arch);
+  if (!write(&nr_of_compressed_y_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_y, 1, nr_of_compressed_y_bytes, arch))
+    return 0;
   trico_free(compressed_y);
 
   uint32_t nr_of_compressed_z_bytes;
@@ -331,17 +359,22 @@ void trico_write_vertices_double(void* a, uint32_t nr_of_vertices, const double*
   trico_compress_double_precision(&nr_of_compressed_z_bytes, &compressed_z, z, nr_of_vertices, 20, 20);
 
   trico_free(z);
-  write(&nr_of_compressed_z_bytes, sizeof(uint32_t), 1, arch);
-  write(compressed_z, 1, nr_of_compressed_z_bytes, arch);
+  if (!write(&nr_of_compressed_z_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_z, 1, nr_of_compressed_z_bytes, arch))
+    return 0;
   trico_free(compressed_z);
+  return 1;
   }
 
-void trico_write_triangles_long(void* a, uint32_t nr_of_triangles, const uint64_t* tria_indices)
+int trico_write_triangles_long(void* a, uint32_t nr_of_triangles, const uint64_t* tria_indices)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   uint8_t header = (uint8_t)triangle_uint64_stream;
-  write(&header, 1, 1, arch);
-  write(&nr_of_triangles, sizeof(uint32_t), 1, arch);
+  if (!write(&header, 1, 1, arch))
+    return 0;
+  if (!write(&nr_of_triangles, sizeof(uint32_t), 1, arch))
+    return 0;
 
   uint8_t* b1 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   uint8_t* b2 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
@@ -363,36 +396,52 @@ void trico_write_triangles_long(void* a, uint32_t nr_of_triangles, const uint64_
   uint8_t* compressed_buf = (uint8_t*)trico_malloc(estimateLen);
 
   uint32_t bytes_written = (uint32_t)LZ4_compress_default((const char*)b1, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   bytes_written = (uint32_t)LZ4_compress_default((const char*)b2, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   bytes_written = (uint32_t)LZ4_compress_default((const char*)b3, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   bytes_written = (uint32_t)LZ4_compress_default((const char*)b4, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   bytes_written = (uint32_t)LZ4_compress_default((const char*)b5, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   bytes_written = (uint32_t)LZ4_compress_default((const char*)b6, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   bytes_written = (uint32_t)LZ4_compress_default((const char*)b7, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   bytes_written = (uint32_t)LZ4_compress_default((const char*)b8, (char*)compressed_buf, (int)nr_of_triangles * 3, (int)estimateLen);
-  write(&bytes_written, sizeof(uint32_t), 1, arch);
-  write(compressed_buf, 1, bytes_written, arch);
+  if (!write(&bytes_written, sizeof(uint32_t), 1, arch))
+    return 0;
+  if (!write(compressed_buf, 1, bytes_written, arch))
+    return 0;
 
   trico_free(compressed_buf);
 
@@ -404,15 +453,18 @@ void trico_write_triangles_long(void* a, uint32_t nr_of_triangles, const uint64_
   trico_free(b6);
   trico_free(b7);
   trico_free(b8);
+
+  return 1;
   }
 
 uint32_t trico_get_number_of_vertices(void* a)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   if (arch->next_stream_type == vertex_float_stream || arch->next_stream_type == vertex_double_stream)
     {
     uint32_t nr_vertices;
-    read_inplace(&nr_vertices, sizeof(uint32_t), 1, arch);
+    if (!read_inplace(&nr_vertices, sizeof(uint32_t), 1, arch))
+      return 0;
     return nr_vertices;
     }
   return 0;
@@ -420,11 +472,12 @@ uint32_t trico_get_number_of_vertices(void* a)
 
 uint32_t trico_get_number_of_triangles(void* a)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   if (arch->next_stream_type == triangle_uint32_stream || arch->next_stream_type == triangle_uint64_stream)
     {
     uint32_t nr_triangles;
-    read_inplace(&nr_triangles, sizeof(uint32_t), 1, arch);
+    if (!read_inplace(&nr_triangles, sizeof(uint32_t), 1, arch))
+      return 0;
     return nr_triangles;
     }
   return 0;
@@ -432,31 +485,38 @@ uint32_t trico_get_number_of_triangles(void* a)
 
 int trico_read_vertices(void* a, float** vertices)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   if (trico_get_next_stream_type(arch) != vertex_float_stream)
     return 0;
 
   uint32_t nr_vertices;
-  read(&nr_vertices, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_vertices, sizeof(uint32_t), 1, arch))
+    return 0;
 
   uint32_t nr_of_compressed_bytes;
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   void* compressed = trico_malloc(nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   float* decompressed_x;
   uint32_t nr_of_floats_x;
   trico_decompress(&nr_of_floats_x, &decompressed_x, (const uint8_t*)compressed);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   float* decompressed_y;
   uint32_t nr_of_floats_y;
   trico_decompress(&nr_of_floats_y, &decompressed_y, (const uint8_t*)compressed);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   float* decompressed_z;
   uint32_t nr_of_floats_z;
   trico_decompress(&nr_of_floats_z, &decompressed_z, (const uint8_t*)compressed);
@@ -479,32 +539,39 @@ int trico_read_vertices(void* a, float** vertices)
 
 int trico_read_vertices_double(void* a, double** vertices)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
 
   if (trico_get_next_stream_type(arch) != vertex_double_stream)
     return 0;
 
   uint32_t nr_vertices;
-  read(&nr_vertices, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_vertices, sizeof(uint32_t), 1, arch))
+    return 0;
 
   uint32_t nr_of_compressed_bytes;
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   void* compressed = trico_malloc(nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   double* decompressed_x;
   uint32_t nr_of_doubles_x;
   trico_decompress_double_precision(&nr_of_doubles_x, &decompressed_x, (const uint8_t*)compressed);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   double* decompressed_y;
   uint32_t nr_of_doubles_y;
   trico_decompress_double_precision(&nr_of_doubles_y, &decompressed_y, (const uint8_t*)compressed);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   double* decompressed_z;
   uint32_t nr_of_doubles_z;
   trico_decompress_double_precision(&nr_of_doubles_z, &decompressed_z, (const uint8_t*)compressed);
@@ -527,38 +594,47 @@ int trico_read_vertices_double(void* a, double** vertices)
 
 int trico_read_triangles(void* a, uint32_t** triangles)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
   if (trico_get_next_stream_type(arch) != triangle_uint32_stream)
     return 0;
 
   uint32_t nr_of_triangles;
-  read(&nr_of_triangles, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_triangles, sizeof(uint32_t), 1, arch))
+    return 0;
 
   uint32_t nr_of_compressed_bytes;
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   void* compressed = trico_malloc(nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b1 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   uint32_t bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b1, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b2 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b2, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b3 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b3, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b4 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b4, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
@@ -578,67 +654,84 @@ int trico_read_triangles(void* a, uint32_t** triangles)
 
 int trico_read_triangles_long(void* a, uint64_t** triangles)
   {
-  struct archive* arch = (struct archive*)a;
+  struct trico_archive* arch = (struct trico_archive*)a;
 
   if (trico_get_next_stream_type(arch) != triangle_uint64_stream)
     return 0;
 
   uint32_t nr_of_triangles;
-  read(&nr_of_triangles, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_triangles, sizeof(uint32_t), 1, arch))
+    return 0;
 
   uint32_t nr_of_compressed_bytes;
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   void* compressed = trico_malloc(nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b1 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   uint32_t bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b1, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b2 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b2, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b3 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b3, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b4 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b4, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b5 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b5, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b6 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b6, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b7 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b7, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-  read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch);
+  if (!read(&nr_of_compressed_bytes, sizeof(uint32_t), 1, arch))
+    return 0;
   compressed = trico_realloc(compressed, nr_of_compressed_bytes);
-  read(compressed, 1, nr_of_compressed_bytes, arch);
+  if (!read(compressed, 1, nr_of_compressed_bytes, arch))
+    return 0;
   uint8_t* decompressed_b8 = (uint8_t*)trico_malloc(nr_of_triangles * 3);
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b8, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);

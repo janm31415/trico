@@ -181,5 +181,8 @@ Now `vertices` and `tria_indices` contain the decompressed 3D mesh data. It's ho
   
       trico_close_archive(arch);
       free(buffer);
-      
-      
+            
+References
+----------
+For fast compression of integer types I use [LZ4](https://github.com/lz4/lz4).
+The compression of floating point and double precision streams is based on the paper "High Throughput Compression of Double-Precision Floating-Point Data" by Martin Burtscher and Paruj Ratanaworabhan, with some modifications.

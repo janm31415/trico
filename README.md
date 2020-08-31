@@ -58,7 +58,7 @@ The call to `trico_free` simply calls `free`, but it allows users to provide spe
 
 Next we save the compressed data to file.
 
-    FILE* f = fopen("compressed.trc", "wb");
+    FILE* f = fopen("my_compressed_file.trc", "wb");
     if (f)
       {      
       fwrite((const void*)trico_get_buffer_pointer(arch), trico_get_size(arch), 1, f);
@@ -70,3 +70,116 @@ Here `trico_get_buffer_pointer` returns the internal buffer, and `trico_get_size
 Finally we close the archive:
 
     trico_close_archive(arch);
+
+### Decompression
+To decompress a file, we first need to read it in memory. Getting the size of a file can be tricky. If the filesize is less than 2Gb you can get its size by
+
+    FILE* f = fopen("my_compressed_file.trc", "rb");
+    fseek(f, 0, SEEK_END);
+    long file_size = ftell(fp);
+    fseek(f, 0, SEEK_SET);
+    
+To get the filesize for files larger than 2Gb you can use the method `stat` on Linux, or `_stat64` on Windows:
+
+    #ifdef _WIN32
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #else
+    #include <sys/stat.h>
+    #endif
+    
+    #ifdef _WIN32
+    static inline long long fsize(const char *filename)
+      {
+      struct _stat64 st;
+    
+      if (_stat64(filename, &st) == 0)
+        return st.st_size;
+    
+      return -1;
+      }
+    #else
+    static inline long long fsize(const char *filename) 
+      {
+      struct stat st;
+    
+      if (stat(filename, &st) == 0)
+        return st.st_size;
+    
+      return -1;
+      }
+    #endif
+    
+    long long file_size = fsize("my_compressed_file.trc");
+    
+Once we have the filesize, we can read the file in a single buffer:
+
+    char* buffer = (char*)malloc(file_size); 
+    fread(buffer, 1, file_size, f);
+    
+If you work in C++, you can read the file as follows (assuming it is smaller than 2Gb):
+
+    std::ifstream infile;
+    infile.open("my_compressed_file.trc", std::ios::binary | std::ios::in);
+    infile.seekg(0,std::ios::end);
+    int file_size = infile.tellg();
+    infile.seekg(0,std::ios::beg);
+    char *buffer = new char[file_size];
+    infile.read(data, file_size);
+    infile.close();
+
+Next we make a Trico archive for reading:
+
+    void* arch = trico_open_archive_for_reading((const uint8_t*)buffer, file_size);
+ 
+If we know the structure of the Trico archive, we can immediately call the correct reading methods in the right order. Let's assume the Trico archive was created as explained in the Compression section, i.e. first a stream of 3D float vertices, and then a stream of uint32_t triangle indices, then we can decompress as follows:
+
+    uint32_t nr_of_vertices = trico_get_number_of_vertices(arch);
+    float* vertices = (float*)malloc(nr_of_vertices * 3 * sizeof(float)); // allocate a buffer for the decompressed vertices
+    trico_read_vertices(arch, &vertices);
+    
+    uint32_t nr_of_triangles = trico_get_number_of_triangles(arch);
+    uint32_t* tria_indices = (uint32_t*)malloc(nr_of_triangles * 3 * sizeof(uint32_t));
+    trico_read_triangles(arch, &tria_indices);
+    
+Now `vertices` and `tria_indices` contain the decompressed 3D mesh data. It's however possible that you do not exactly know the structure of the Trico archive. Then you can do something like this:
+
+    uint32_t nr_of_vertices;
+    float* vertices;
+    uint32_t nr_of_triangles;
+    uint32_t* tria_indices;
+    
+    enum trico_stream_type st = trico_get_next_stream_type(arch);
+    while (!st == trico_empty)
+      {
+      switch (st)
+        {
+        case trico_vertex_float_stream:
+          {
+          nr_of_vertices = trico_get_number_of_vertices(arch);
+          vertices = (float*)malloc(nr_of_vertices * 3 * sizeof(float)); // allocate a buffer for the decompressed vertices
+          trico_read_vertices(arch, &vertices);
+          break;
+          }
+        case trico_triangle_uint32_stream:
+          {
+          nr_of_triangles = trico_get_number_of_triangles(arch);
+          tria_indices = (uint32_t*)malloc(nr_of_triangles * 3 * sizeof(uint32_t));
+          trico_read_triangles(arch, &tria_indices);
+          break;
+          }
+        default:
+          {
+          trico_skip_next_stream(arch);
+          break;
+          }
+        }
+      st = trico_get_next_stream_type(arch);
+      }
+    
+  Finally we close the Trico archive and free the buffer.
+  
+      trico_close_archive(arch);
+      free(buffer);
+      
+      

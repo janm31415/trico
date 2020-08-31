@@ -922,7 +922,8 @@ static int trico_read_vec3_float(void* a, float** vertices, enum trico_stream_ty
   assert(nr_of_floats_x == nr_of_floats_y);
   assert(nr_of_floats_x == nr_of_floats_z);
 
-  trico_transpose_xyz_soa_to_aos(vertices, decompressed_x, decompressed_y, decompressed_z, nr_vertices);
+  if (vertices != NULL)
+    trico_transpose_xyz_soa_to_aos(vertices, decompressed_x, decompressed_y, decompressed_z, nr_vertices);
 
   trico_free(decompressed_x);
   trico_free(decompressed_y);
@@ -987,7 +988,8 @@ static int trico_read_vec3_double(void* a, double** vertices, enum trico_stream_
   assert(nr_of_doubles_x == nr_of_doubles_y);
   assert(nr_of_doubles_x == nr_of_doubles_z);
 
-  trico_transpose_xyz_soa_to_aos_double_precision(vertices, decompressed_x, decompressed_y, decompressed_z, nr_vertices);
+  if (vertices != NULL)
+    trico_transpose_xyz_soa_to_aos_double_precision(vertices, decompressed_x, decompressed_y, decompressed_z, nr_vertices);
 
   trico_free(decompressed_x);
   trico_free(decompressed_y);
@@ -1055,7 +1057,8 @@ int trico_read_triangles(void* a, uint32_t** triangles)
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b4, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-  trico_transpose_uint32_soa_to_aos(triangles, decompressed_b1, decompressed_b2, decompressed_b3, decompressed_b4, nr_of_triangles * 3);
+  if (triangles != NULL)
+    trico_transpose_uint32_soa_to_aos(triangles, decompressed_b1, decompressed_b2, decompressed_b3, decompressed_b4, nr_of_triangles * 3);
 
   trico_free(compressed);
   trico_free(decompressed_b1);
@@ -1152,8 +1155,8 @@ int trico_read_triangles_long(void* a, uint64_t** triangles)
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b8, nr_of_compressed_bytes, nr_of_triangles * 3);
   assert(bytes_decompressed == nr_of_triangles * 3);
 
-
-  trico_transpose_uint64_soa_to_aos(triangles, decompressed_b1, decompressed_b2, decompressed_b3, decompressed_b4, decompressed_b5, decompressed_b6, decompressed_b7, decompressed_b8, nr_of_triangles * 3);
+  if (triangles != NULL)
+    trico_transpose_uint64_soa_to_aos(triangles, decompressed_b1, decompressed_b2, decompressed_b3, decompressed_b4, decompressed_b5, decompressed_b6, decompressed_b7, decompressed_b8, nr_of_triangles * 3);
 
   trico_free(compressed);
   trico_free(decompressed_b1);
@@ -1204,7 +1207,8 @@ int trico_read_uv(void* a, float** uv)
   assert(nr_of_floats_u == nr_uv_positions);
   assert(nr_of_floats_v == nr_of_floats_u);
 
-  trico_transpose_uv_soa_to_aos(uv, decompressed_u, decompressed_v, nr_uv_positions);
+  if (uv != NULL)
+    trico_transpose_uv_soa_to_aos(uv, decompressed_u, decompressed_v, nr_uv_positions);
 
   trico_free(decompressed_u);
   trico_free(decompressed_v);
@@ -1248,7 +1252,8 @@ int trico_read_uv_double(void* a, double** uv)
   assert(nr_of_doubles_u == nr_uv_positions);
   assert(nr_of_doubles_v == nr_of_doubles_u);
 
-  trico_transpose_uv_soa_to_aos_double_precision(uv, decompressed_u, decompressed_v, nr_uv_positions);
+  if (uv != NULL)
+    trico_transpose_uv_soa_to_aos_double_precision(uv, decompressed_u, decompressed_v, nr_uv_positions);
 
   trico_free(decompressed_u);
   trico_free(decompressed_v);
@@ -1275,10 +1280,14 @@ int trico_read_attributes_float(void* a, float** attrib)
   if (!read(compressed, 1, nr_of_compressed_bytes, arch))
     return 0;
   uint32_t nr_of_floats;
-  trico_decompress(&nr_of_floats, attrib, (const uint8_t*)compressed);
 
+  if (attrib != NULL)
+    {
+    trico_decompress(&nr_of_floats, attrib, (const uint8_t*)compressed);
+    assert(nr_of_floats == nr_attrib);
+    }
   trico_free(compressed);
-  assert(nr_of_floats == nr_attrib);
+  
 
   read_next_stream_type(arch);
 
@@ -1302,10 +1311,15 @@ int trico_read_attributes_double(void* a, double** attrib)
   if (!read(compressed, 1, nr_of_compressed_bytes, arch))
     return 0;
   uint32_t nr_of_doubles;
-  trico_decompress_double_precision(&nr_of_doubles, attrib, (const uint8_t*)compressed);
+
+  if (attrib != NULL)
+    {
+    trico_decompress_double_precision(&nr_of_doubles, attrib, (const uint8_t*)compressed);
+    assert(nr_of_doubles == nr_attrib);
+    }
 
   trico_free(compressed);
-  assert(nr_of_doubles == nr_attrib);
+  
 
   read_next_stream_type(arch);
 
@@ -1328,8 +1342,13 @@ int trico_read_attributes_uint8(void* a, uint8_t** attrib)
   void* compressed = trico_malloc(nr_of_compressed_bytes);
   if (!read(compressed, 1, nr_of_compressed_bytes, arch))
     return 0;
-  uint32_t bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)attrib, nr_of_compressed_bytes, nr_of_attribs);
-  assert(bytes_decompressed == nr_of_attribs);
+
+  if (attrib != NULL)
+    {
+    uint32_t bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)attrib, nr_of_compressed_bytes, nr_of_attribs);
+    assert(bytes_decompressed == nr_of_attribs);
+    (void)bytes_decompressed; //suppress warning
+    }
 
   trico_free(compressed);  
 
@@ -1367,7 +1386,8 @@ int trico_read_attributes_uint16(void* a, uint16_t** attrib)
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b2, nr_of_compressed_bytes, nr_of_attribs);
   assert(bytes_decompressed == nr_of_attribs);
 
-  trico_transpose_uint16_soa_to_aos(attrib, decompressed_b1, decompressed_b2, nr_of_attribs);
+  if (attrib != NULL)
+    trico_transpose_uint16_soa_to_aos(attrib, decompressed_b1, decompressed_b2, nr_of_attribs);
 
   trico_free(compressed);
   trico_free(decompressed_b1);
@@ -1425,7 +1445,8 @@ int trico_read_attributes_uint32(void* a, uint32_t** attrib)
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b4, nr_of_compressed_bytes, nr_of_attribs);
   assert(bytes_decompressed == nr_of_attribs);
 
-  trico_transpose_uint32_soa_to_aos(attrib, decompressed_b1, decompressed_b2, decompressed_b3, decompressed_b4, nr_of_attribs);
+  if (attrib != NULL)
+    trico_transpose_uint32_soa_to_aos(attrib, decompressed_b1, decompressed_b2, decompressed_b3, decompressed_b4, nr_of_attribs);
 
   trico_free(compressed);
   trico_free(decompressed_b1);
@@ -1522,8 +1543,8 @@ int trico_read_attributes_uint64(void* a, uint64_t** attrib)
   bytes_decompressed = (uint32_t)LZ4_decompress_safe((const char*)compressed, (char*)decompressed_b8, nr_of_compressed_bytes, nr_of_attribs);
   assert(bytes_decompressed == nr_of_attribs);
 
-
-  trico_transpose_uint64_soa_to_aos(attrib, decompressed_b1, decompressed_b2, decompressed_b3, decompressed_b4, decompressed_b5, decompressed_b6, decompressed_b7, decompressed_b8, nr_of_attribs);
+  if (attrib != NULL)
+    trico_transpose_uint64_soa_to_aos(attrib, decompressed_b1, decompressed_b2, decompressed_b3, decompressed_b4, decompressed_b5, decompressed_b6, decompressed_b7, decompressed_b8, nr_of_attribs);
 
   trico_free(compressed);
   trico_free(decompressed_b1);
@@ -1539,3 +1560,28 @@ int trico_read_attributes_uint64(void* a, uint64_t** attrib)
 
   return 1;
   }
+
+  int trico_skip_next_stream(void* a)
+    {
+    struct trico_archive* arch = (struct trico_archive*)a;
+    enum trico_stream_type st = trico_get_next_stream_type(arch);
+    switch (st)
+      {
+      case empty: return 1;
+      case vertex_float_stream: return trico_read_vertices(arch, NULL);
+      case vertex_double_stream: return trico_read_vertices_double(arch, NULL);
+      case triangle_uint32_stream: return trico_read_triangles(arch, NULL);
+      case triangle_uint64_stream: return trico_read_triangles_long(arch, NULL);
+      case uv_float_stream: return trico_read_uv(arch, NULL);
+      case uv_double_stream: return trico_read_uv_double(arch, NULL);
+      case normal_float_stream: return trico_read_normals(arch, NULL);
+      case normal_double_stream: return trico_read_normals_double(arch, NULL);
+      case attribute_float_stream: return trico_read_attributes_float(arch, NULL);
+      case attribute_double_stream: return trico_read_attributes_double(arch, NULL);
+      case attribute_uint8_stream: return trico_read_attributes_uint8(arch, NULL);
+      case attribute_uint16_stream: return trico_read_attributes_uint16(arch, NULL);
+      case attribute_uint32_stream: return trico_read_attributes_uint32(arch, NULL);
+      case attribute_uint64_stream: return trico_read_attributes_uint64(arch, NULL);
+      }
+    return 0;
+    }

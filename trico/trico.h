@@ -72,6 +72,7 @@ TRICO_API int trico_read_attributes_uint8(void* archive, uint8_t** attrib);
 TRICO_API int trico_read_attributes_uint16(void* archive, uint16_t** attrib);
 TRICO_API int trico_read_attributes_uint32(void* archive, uint32_t** attrib);
 TRICO_API int trico_read_attributes_uint64(void* archive, uint64_t** attrib);
+TRICO_API int trico_skip_next_stream(void* archive);
 
 #endif
 

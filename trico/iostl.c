@@ -1,6 +1,7 @@
 #include "iostl.h"
 #include "alloc.h"
 #include <stdio.h>
+#include <string.h>
 
 static inline int trico_less_vertices(float* left, float* right)
   {
@@ -191,3 +192,128 @@ int trico_read_stl(uint32_t* nr_of_vertices, float** vertices, uint32_t* nr_of_t
   return 1;
   }
 
+int trico_read_stl_full(uint32_t* nr_of_vertices, float** vertices, uint32_t* nr_of_triangles, uint32_t** triangles, float** normals, uint16_t** attributes, const char* filename)
+  {
+  *vertices = NULL;
+  *triangles = NULL;
+  *nr_of_vertices = 0;
+  *nr_of_triangles = 0;
+  FILE* inputfile = fopen(filename, "rb");
+  if (!inputfile)
+    return 0;
+
+  if (!inputfile)
+    return 0;
+
+  char buffer[80];
+  fread(buffer, 1, 80, inputfile);
+
+  if (buffer[0] == 's' && buffer[1] == 'o' && buffer[2] == 'l' && buffer[3] == 'i' && buffer[4] == 'd')
+    {
+    fclose(inputfile);
+    return 0;
+    }
+
+  fread((void*)(nr_of_triangles), sizeof(uint32_t), 1, inputfile);
+  *triangles = (uint32_t*)trico_malloc(*nr_of_triangles * 3 * sizeof(uint32_t));
+  *normals = (float*)trico_malloc(*nr_of_triangles * 3 * sizeof(float));
+  *attributes = (uint16_t*)trico_malloc(*nr_of_triangles * sizeof(uint16_t));
+  uint32_t count_triangles = 0;
+  *nr_of_vertices = 0;
+  *vertices = (float*)trico_malloc(*nr_of_triangles * 9 * sizeof(float));
+
+  uint32_t* tria_it = *triangles;
+  float* vert_it = *vertices;
+  float* norm_it = *normals;
+  uint16_t* attr_it = *attributes;
+  while (!feof(inputfile) && count_triangles < *nr_of_triangles)
+    {
+    ++count_triangles;
+    fread(buffer, 1, 50, inputfile);
+    *norm_it++ = *(float*)(&(buffer[0]));
+    *norm_it++ = *(float*)(&(buffer[4]));
+    *norm_it++ = *(float*)(&(buffer[8]));
+    *vert_it++ = *(float*)(&(buffer[12]));
+    *vert_it++ = *(float*)(&(buffer[16]));
+    *vert_it++ = *(float*)(&(buffer[20]));
+    *vert_it++ = *(float*)(&(buffer[24]));
+    *vert_it++ = *(float*)(&(buffer[28]));
+    *vert_it++ = *(float*)(&(buffer[32]));
+    *vert_it++ = *(float*)(&(buffer[36]));
+    *vert_it++ = *(float*)(&(buffer[40]));
+    *vert_it++ = *(float*)(&(buffer[44]));
+    *attr_it++ = *(uint16_t*)(&(buffer[48]));
+    *tria_it++ = (*nr_of_vertices)++;
+    *tria_it++ = (*nr_of_vertices)++;
+    *tria_it++ = (*nr_of_vertices)++;
+    }
+  fclose(inputfile);
+  if (count_triangles != *nr_of_triangles)
+    return 0;
+
+  trico_remove_duplicate_vertices(nr_of_vertices, vertices, *nr_of_triangles, triangles);
+  *vertices = (float*)trico_realloc(*vertices, *nr_of_vertices * 3 * sizeof(float));
+  return 1;
+  }
+
+int trico_write_stl(const float* vertices, const uint32_t* triangles, const uint32_t nr_of_triangles, const float* triangle_normals, const uint16_t* attributes, const char* filename)
+  {
+  FILE* outputfile;
+  outputfile = fopen(filename, "wb");
+
+  if (!outputfile)
+    return 0;
+
+  char buffer[80] = "STL Binary File Format written by Trico library for lossless mesh compression  ";
+  fwrite(buffer, 1, 80, outputfile);
+  fwrite((void*)(&nr_of_triangles), sizeof(uint32_t), 1, outputfile);
+  uint32_t count_triangles = 0;
+  const uint32_t* tria_it = triangles;
+  const float* tria_norm_it = triangle_normals;
+  const uint16_t* attr_it = attributes;
+  while (count_triangles < nr_of_triangles)
+    {
+    ++count_triangles;
+    uint32_t v0 = *tria_it++;
+    uint32_t v1 = *tria_it++;
+    uint32_t v2 = *tria_it++;
+    if (tria_norm_it)
+      {
+      float nx = *tria_norm_it++;
+      float ny = *tria_norm_it++;
+      float nz = *tria_norm_it++;
+      memcpy((void*)&buffer[0], &nx, sizeof(float));
+      memcpy((void*)&buffer[4], &ny, sizeof(float));
+      memcpy((void*)&buffer[8], &nz, sizeof(float));
+      }
+    else
+      {
+      float z = 0.f;
+      memcpy((void*)&buffer[0], &z, sizeof(float));
+      memcpy((void*)&buffer[4], &z, sizeof(float));
+      memcpy((void*)&buffer[8], &z, sizeof(float));
+      }
+    memcpy((void*)&buffer[12], &vertices[v0 * 3], sizeof(float));
+    memcpy((void*)&buffer[16], &vertices[v0 * 3 + 1], sizeof(float));
+    memcpy((void*)&buffer[20], &vertices[v0 * 3 + 2], sizeof(float));
+    memcpy((void*)&buffer[24], &vertices[v1 * 3], sizeof(float));
+    memcpy((void*)&buffer[28], &vertices[v1 * 3 + 1], sizeof(float));
+    memcpy((void*)&buffer[32], &vertices[v1 * 3 + 2], sizeof(float));
+    memcpy((void*)&buffer[36], &vertices[v2 * 3], sizeof(float));
+    memcpy((void*)&buffer[40], &vertices[v2 * 3 + 1], sizeof(float));
+    memcpy((void*)&buffer[44], &vertices[v2 * 3 + 2], sizeof(float));
+    if (!attr_it)
+      {
+      uint16_t z = 0;
+      memcpy((void*)&buffer[48], &z, sizeof(uint16_t));
+      }
+    else
+      {
+      uint16_t attr = *attr_it++;      
+      memcpy((void*)&buffer[48], &attr, sizeof(uint16_t));
+      }
+    fwrite(buffer, 1, 50, outputfile);
+    }
+  fclose(outputfile);
+  return 1;
+  }

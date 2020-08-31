@@ -54,7 +54,7 @@ We can now free the vertices and triangles that were allocated by our call to `t
     trico_free(vertices);
     trico_free(triangles);
     
-The call to `trico_free` simply calls `free`, but it allows users to provide special allocation by overriding `trico_malloc`, `trico_realloc`, and `trico_free`.
+The call to `trico_free` simply calls `free`, but it allows users to provide special allocation by overriding `trico_malloc`, `trico_calloc`, `trico_realloc`, and `trico_free`.
 
 Next we save the compressed data to file.
 

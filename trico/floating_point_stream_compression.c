@@ -101,8 +101,8 @@ void trico_compress(uint32_t* nr_of_compressed_bytes, uint8_t** out, const float
   const uint32_t hash1_mask = hash1_size - 1;
   const uint32_t hash2_mask = hash2_size - 1;
 
-  uint32_t* hash_table_1 = (uint32_t*)calloc(hash1_size, 4);
-  uint32_t* hash_table_2 = (uint32_t*)calloc(hash2_size, 4);
+  uint32_t* hash_table_1 = (uint32_t*)trico_calloc(hash1_size, 4);
+  uint32_t* hash_table_2 = (uint32_t*)trico_calloc(hash2_size, 4);
 
   uint32_t value;
   uint32_t stride;
@@ -204,8 +204,8 @@ void trico_compress(uint32_t* nr_of_compressed_bytes, uint8_t** out, const float
     }
 
   *nr_of_compressed_bytes = (uint32_t)(p_out - *out);
-  free(hash_table_1);
-  free(hash_table_2);
+  trico_free(hash_table_1);
+  trico_free(hash_table_2);
   *out = (uint8_t*)trico_realloc(*out, *nr_of_compressed_bytes);
   }
 
@@ -221,8 +221,8 @@ void trico_decompress(uint32_t* number_of_floats, float** out, const uint8_t* co
   const uint32_t hash1_mask = hash1_size - 1;
   const uint32_t hash2_mask = hash2_size - 1;
 
-  uint32_t* hash_table_1 = (uint32_t*)calloc(hash1_size, 4);
-  uint32_t* hash_table_2 = (uint32_t*)calloc(hash2_size, 4);
+  uint32_t* hash_table_1 = (uint32_t*)trico_calloc(hash1_size, 4);
+  uint32_t* hash_table_2 = (uint32_t*)trico_calloc(hash2_size, 4);
 
   *number_of_floats = ((uint32_t)(*compressed++)) << 24;
   *number_of_floats |= ((uint32_t)(*compressed++)) << 16;
@@ -412,8 +412,8 @@ void trico_decompress(uint32_t* number_of_floats, float** out, const uint8_t* co
       }
     }
 
-  free(hash_table_1);
-  free(hash_table_2);
+  trico_free(hash_table_1);
+  trico_free(hash_table_2);
   }
 
 
@@ -590,8 +590,8 @@ void trico_compress_double_precision(uint32_t* nr_of_compressed_bytes, uint8_t**
   const uint64_t hash1_mask = hash1_size - 1;
   const uint64_t hash2_mask = hash2_size - 1;
 
-  uint64_t* hash_table_1 = (uint64_t*)calloc(hash1_size, 8);
-  uint64_t* hash_table_2 = (uint64_t*)calloc(hash2_size, 8);
+  uint64_t* hash_table_1 = (uint64_t*)trico_calloc(hash1_size, 8);
+  uint64_t* hash_table_2 = (uint64_t*)trico_calloc(hash2_size, 8);
 
   uint64_t value;
   uint64_t stride;
@@ -794,8 +794,8 @@ void trico_compress_double_precision(uint32_t* nr_of_compressed_bytes, uint8_t**
     }
 
   *nr_of_compressed_bytes = (uint32_t)(p_out - *out);
-  free(hash_table_1);
-  free(hash_table_2);
+  trico_free(hash_table_1);
+  trico_free(hash_table_2);
   *out = (uint8_t*)trico_realloc(*out, *nr_of_compressed_bytes);
   }
 
@@ -812,8 +812,8 @@ void trico_decompress_double_precision(uint32_t* number_of_doubles, double** out
   const uint64_t hash1_mask = hash1_size - 1;
   const uint64_t hash2_mask = hash2_size - 1;
 
-  uint64_t* hash_table_1 = (uint64_t*)calloc(hash1_size, 8);
-  uint64_t* hash_table_2 = (uint64_t*)calloc(hash2_size, 8);
+  uint64_t* hash_table_1 = (uint64_t*)trico_calloc(hash1_size, 8);
+  uint64_t* hash_table_2 = (uint64_t*)trico_calloc(hash2_size, 8);
 
   *number_of_doubles = ((uint32_t)(*compressed++)) << 24;
   *number_of_doubles |= ((uint32_t)(*compressed++)) << 16;
@@ -1159,7 +1159,7 @@ void trico_decompress_double_precision(uint32_t* number_of_doubles, double** out
       }
     }
 
-  free(hash_table_1);
-  free(hash_table_2);
+  trico_free(hash_table_1);
+  trico_free(hash_table_2);
   }
   

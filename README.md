@@ -139,7 +139,7 @@ If we know the structure of the Trico archive, we can immediately call the corre
     trico_read_vertices(arch, &vertices);
     
     uint32_t nr_of_triangles = trico_get_number_of_triangles(arch);
-    uint32_t* tria_indices = (uint32_t*)malloc(nr_of_triangles * 3 * sizeof(uint32_t));
+    uint32_t* tria_indices = (uint32_t*)malloc(nr_of_triangles * 3 * sizeof(uint32_t)); // allocate a buffer for the decompressed triangle indices
     trico_read_triangles(arch, &tria_indices);
     
 Now `vertices` and `tria_indices` contain the decompressed 3D mesh data. It's however possible that you do not exactly know the structure of the Trico archive. Then you can do something like this:
@@ -164,7 +164,7 @@ Now `vertices` and `tria_indices` contain the decompressed 3D mesh data. It's ho
         case trico_triangle_uint32_stream:
           {
           nr_of_triangles = trico_get_number_of_triangles(arch);
-          tria_indices = (uint32_t*)malloc(nr_of_triangles * 3 * sizeof(uint32_t));
+          tria_indices = (uint32_t*)malloc(nr_of_triangles * 3 * sizeof(uint32_t)); // allocate a buffer for the decompressed triangle indices
           trico_read_triangles(arch, &tria_indices);
           break;
           }

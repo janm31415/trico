@@ -53,8 +53,8 @@ void test_stl(const char* filename)
   TEST_EQ(1, trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, filename));
 
   void* arch = trico_open_archive_for_writing(1024 * 1024);
-  TEST_ASSERT(trico_write_vertices(arch, nr_of_vertices, vertices));
-  TEST_ASSERT(trico_write_triangles(arch, nr_of_triangles, triangles));
+  TEST_ASSERT(trico_write_vertices(arch, vertices, nr_of_vertices));
+  TEST_ASSERT(trico_write_triangles(arch, triangles, nr_of_triangles));
 
   std::ofstream outfile;
   outfile.open("stltest.trc", std::ios::binary | std::ios::out);
@@ -135,8 +135,8 @@ void test_stl_double_64(const char* filename)
   trico_free(triangles32);
 
   void* arch = trico_open_archive_for_writing(1024 * 1024);
-  TEST_ASSERT(trico_write_vertices_double(arch, nr_of_vertices, vertices));
-  TEST_ASSERT(trico_write_triangles_long(arch, nr_of_triangles, triangles));
+  TEST_ASSERT(trico_write_vertices_double(arch, vertices, nr_of_vertices));
+  TEST_ASSERT(trico_write_triangles_long(arch, triangles, nr_of_triangles));
 
   uint64_t length = trico_get_size(arch);
   char* data = new char[length];

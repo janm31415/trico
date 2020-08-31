@@ -17,6 +17,5 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 add_subdirectory(lz4)
 add_subdirectory(trico)
 add_subdirectory(trico.tests)
-add_subdirectory(zlib)
 
 

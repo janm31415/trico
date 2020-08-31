@@ -44,7 +44,6 @@ void test_header()
 
 void test_stl(const char* filename)
   {
-  std::cout << "Tests for file " << filename << "\n";
   uint32_t nr_of_vertices;
   float* vertices;
   uint32_t nr_of_triangles;
@@ -105,13 +104,11 @@ void test_stl(const char* filename)
   trico_free(triangles);
 
   delete[] data;
-  std::cout << "********************************************\n";
   }
 
 
 void test_stl_double_64(const char* filename)
   {
-  std::cout << "Tests for file " << filename << "\n";
   uint32_t nr_of_vertices;
   float* verticesf;
   uint32_t nr_of_triangles;
@@ -177,7 +174,6 @@ void test_stl_double_64(const char* filename)
   delete[] triangles;
 
   delete[] data;
-  std::cout << "********************************************\n";
   }
 
 

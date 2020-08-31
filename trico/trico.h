@@ -10,21 +10,21 @@ extern "C" {
 
 enum trico_stream_type
   {
-  empty,
-  vertex_float_stream,
-  vertex_double_stream,
-  triangle_uint32_stream,
-  triangle_uint64_stream,
-  uv_float_stream,
-  uv_double_stream,
-  normal_float_stream,
-  normal_double_stream,
-  attribute_float_stream,
-  attribute_double_stream,
-  attribute_uint8_stream,
-  attribute_uint16_stream,
-  attribute_uint32_stream,
-  attribute_uint64_stream
+  trico_empty,
+  trico_vertex_float_stream,
+  trico_vertex_double_stream,
+  trico_triangle_uint32_stream,
+  trico_triangle_uint64_stream,
+  trico_uv_float_stream,
+  trico_uv_double_stream,
+  trico_normal_float_stream,
+  trico_normal_double_stream,
+  trico_attribute_float_stream,
+  trico_attribute_double_stream,
+  trico_attribute_uint8_stream,
+  trico_attribute_uint16_stream,
+  trico_attribute_uint32_stream,
+  trico_attribute_uint64_stream
   };
 
 TRICO_API void* trico_open_archive_for_writing(uint64_t initial_buffer_size);

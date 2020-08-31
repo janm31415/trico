@@ -36,7 +36,7 @@ void test_header()
   TEST_ASSERT(arch != nullptr);
   uint32_t version = trico_get_version(arch);
   TEST_EQ(0, version);
-  TEST_EQ(empty, trico_get_next_stream_type(arch));
+  TEST_EQ(trico_empty, trico_get_next_stream_type(arch));
   trico_close_archive(arch);
 
   delete[] data;
@@ -72,7 +72,7 @@ void test_stl(const char* filename)
   infile.close();
 
   arch = trico_open_archive_for_reading((const uint8_t*)data, length);
-  TEST_EQ(vertex_float_stream, trico_get_next_stream_type(arch));
+  TEST_EQ(trico_vertex_float_stream, trico_get_next_stream_type(arch));
 
   uint32_t nr_vertices = trico_get_number_of_vertices(arch);
   TEST_EQ(nr_of_vertices, nr_vertices);
@@ -86,7 +86,7 @@ void test_stl(const char* filename)
     }
   delete[] vertices_read;
 
-  TEST_EQ(triangle_uint32_stream, trico_get_next_stream_type(arch));
+  TEST_EQ(trico_triangle_uint32_stream, trico_get_next_stream_type(arch));
   uint32_t nr_triangles = trico_get_number_of_triangles(arch);
   TEST_EQ(nr_of_triangles, nr_triangles);
 
@@ -142,7 +142,7 @@ void test_stl_double_64(const char* filename)
   trico_close_archive(arch);
 
   arch = trico_open_archive_for_reading((const uint8_t*)data, length);
-  TEST_EQ(vertex_double_stream, trico_get_next_stream_type(arch));
+  TEST_EQ(trico_vertex_double_stream, trico_get_next_stream_type(arch));
 
   uint32_t nr_vertices = trico_get_number_of_vertices(arch);
   TEST_EQ(nr_of_vertices, nr_vertices);
@@ -156,7 +156,7 @@ void test_stl_double_64(const char* filename)
     }
   delete[] vertices_read;
 
-  TEST_EQ(triangle_uint64_stream, trico_get_next_stream_type(arch));
+  TEST_EQ(trico_triangle_uint64_stream, trico_get_next_stream_type(arch));
   uint32_t nr_triangles = trico_get_number_of_triangles(arch);
   TEST_EQ(nr_of_triangles, nr_triangles);
 

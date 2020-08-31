@@ -113,11 +113,11 @@ int main(int argc, const char** argv)
   uint16_t* attributes = NULL;
 
   enum trico_stream_type st = trico_get_next_stream_type(arch);
-  while (!st == empty)
+  while (!st == trico_empty)
     {
     switch (st)
       {
-      case vertex_float_stream:
+      case trico_vertex_float_stream:
       {
       nr_of_vertices = trico_get_number_of_vertices(arch);
       vertices = (float*)malloc(nr_of_vertices * 3 * sizeof(float));
@@ -129,7 +129,7 @@ int main(int argc, const char** argv)
         }
       break;
       }
-      case normal_float_stream:
+      case trico_normal_float_stream:
       {
       nr_of_normals = trico_get_number_of_normals(arch);
       normals = (float*)malloc(nr_of_normals * 3 * sizeof(float));
@@ -141,7 +141,7 @@ int main(int argc, const char** argv)
         }
       break;
       }
-      case triangle_uint32_stream:
+      case trico_triangle_uint32_stream:
       {
       nr_of_triangles = trico_get_number_of_triangles(arch);
       tria_indices = (uint32_t*)malloc(nr_of_triangles * 3 * sizeof(uint32_t));
@@ -153,7 +153,7 @@ int main(int argc, const char** argv)
         }
       break;
       }
-      case attribute_uint16_stream:
+      case trico_attribute_uint16_stream:
       {
       nr_of_attributes = trico_get_number_of_attributes(arch);
       attributes = (uint16_t*)malloc(nr_of_attributes * sizeof(uint16_t));

@@ -15,6 +15,7 @@ set_property(CACHE TRICO_SHARED PROPERTY STRINGS yes no)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(lz4)
+add_subdirectory(rply)
 add_subdirectory(tools)
 add_subdirectory(trico)
 add_subdirectory(trico.tests)

@@ -22,17 +22,17 @@ if (${TRICO_SHARED} STREQUAL "yes")
 add_definitions(-DTRICO_DLL_IMPORT)
 endif (${TRICO_SHARED} STREQUAL "yes")
 
-add_executable(stl_compress ${HDRS} ${SRCS})
+add_executable(trico_encoder ${HDRS} ${SRCS})
 
 source_group("Header Files" FILES ${hdrs})
 source_group("Source Files" FILES ${srcs})
 
-target_include_directories(stl_compress
+target_include_directories(trico_encoder
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../../
     )	
     
-target_link_libraries(stl_compress
+target_link_libraries(trico_encoder
     PRIVATE	
     trico
     )	

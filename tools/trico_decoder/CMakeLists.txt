@@ -29,21 +29,21 @@ if (${TRICO_SHARED} STREQUAL "yes")
 add_definitions(-DTRICO_DLL_IMPORT)
 endif (${TRICO_SHARED} STREQUAL "yes")
 
-add_executable(stl_decompress ${HDRS} ${SRCS})
+add_executable(trico_decoder ${HDRS} ${SRCS})
 
 source_group("Header Files" FILES ${hdrs})
 source_group("Source Files" FILES ${srcs})
 
-target_include_directories(stl_decompress
+target_include_directories(trico_decoder
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../../
     )	
     
-target_link_libraries(stl_decompress
+target_link_libraries(trico_decoder
     PRIVATE	
     trico
     )	
 
 if (UNIX)
-  target_link_libraries(stl_decompress PRIVATE m )
+  target_link_libraries(trico_decoder PRIVATE m )
 endif (UNIX)

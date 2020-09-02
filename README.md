@@ -7,6 +7,7 @@ Content
 * [Usage](#usage)
 * [Tools](#tools)
 * [Performance](#performance)
+* [Format specification](#format-specification)
 * [References](#references)
 
 Introduction
@@ -202,7 +203,7 @@ Tools
 Currently the source code will create two command line applications: `trico_encoder` and `trico_decoder`. If you run these tools from the command line without arguments you'll get an overview of their usage and options.
 
 ### trico_encoder
-`trico_encoder` can read binary STL files and binary or ascii PLY files. As output it will generate a Trico-encoded file, containing the compressed data of the input file. There are some restrictions on the input PLY files however: when reading PLY files with double precision data, this double precision data will be converted to single precision data by the internal PLY reader, so there is some loss of accuracy here. Note that Trico can compress double precision data without loss of accuracy, but for simplicity of the reader in the encoding tool I've opted to only fully support single precision PLY files. If you need to compress PLY files with double precision this should be fairly straight forward: Essentially you can take the implementation in file `ioply.c` but replace `float` by `double` for the vertices/normals/texture data.
+`trico_encoder` can read binary STL files and binary or ascii PLY files. As output it will generate a Trico-encoded file, containing the compressed data of the input file. There are some restrictions on the input PLY files however: when reading PLY files with double precision data, this double precision data will be converted to single precision data by the internal PLY reader, so there is some loss of accuracy here. Note that Trico can compress double precision data without loss of accuracy, but for simplicity of the reader in the encoding tool I've opted to only fully support single precision PLY files. If you need to compress PLY files with double precision this should be fairly straight forward: Essentially you can take the implementation in file [`ioply.c`](https://github.com/janm31415/trico/blob/master/trico_io/ioply.c) but replace `float` by `double` for the vertices/normals/texture data.
 
 The basic usage of the encoder expects an input file and preferably also an output file. If an output file is omitted, `trico_encoder` will replace the extension of the input file by `.trc` and write to that file, but generally
 
@@ -246,6 +247,52 @@ Vellum manuscript* | 4305818 | 2155617 | 210246 KB | 86241 KB | 23465 KB | 8.96 
 Thai Statue | 10000000 | 4999996 | 488282 KB | 185548 KB | 86165 KB | 5.67 | 2.15
 
 \* the PLY and Trico file contain vertex colors, the STL file does not.
+
+Format specification
+--------------------
+The structure of a Trico-encoded file is as follows:
+
+    <Header>
+    <Body>
+
+The header looks as follows:
+
+Offset | Type | Description
+------ | ---- | -----------
+0 | uint32_t | Magic identifier (`0x6f637254`, or "Trco" when read as ascii)
+4 | uint32_t | Version number (Currently '0x00000000')
+
+The body can be empty, but typically it consists of a number of streams of a certain type. These stream types are exactly equal to the `enum trico_stream_type` in file [trico.h](https://github.com/janm31415/trico/blob/master/trico/trico.h). One such stream block looks as follows:
+
+Offset | Type | Description
+------ | ---- | -----------
+0 | uint8_t | stream type (corresponds with `enum trico_stream_type` in [trico.h](https://github.com/janm31415/trico/blob/master/trico/trico.h)
+1 | uint32_t | length data of uncompressed stream 
+5 | | compressed stream
+
+The length data does not necessarily equal the number of bytes of the uncompressed stream. For instance for vertex data the length data equals the number of vertices, but the byte length would then be the number of vertices times `3` times `sizeof(float)`.
+
+For the compressed stream we distinguish between floating point types and integer types.
+
+Floating point data is first converted from an array of structures to a structure of arrays. Let's take the example of vertices. The input is a list
+
+    x1, y1, z1, x2, y2, z2, ..., xn, yn, zn
+    
+and this list is converted to
+
+    x1, x2, ..., xn, y1, y2, ..., yn, z1, z2, ..., zn.
+    
+Arranging the data like this makes it hopefully easier for a prediction algorithm to guess the next floating point value, so that we get better compression. The compression algorithm for a list of floating point values is based on the paper "High Throughput Compression of Double-Precision Floating-Point Data" by Martin Burtscher and Paruj Ratanaworabhan, but with some modifications, as the paper is focused on double precision, and we are mainly interested in single precision.
+
+Integer data is also rearranged first. We apply byte interleaving. Suppose we have an integer array where an integer consists of four bytes `a`, `b`, `c`, and `d`, then we rearrange as follows
+
+    a1, b1, c1, d1, a2, b2, c2, d2, ..., an, bn, cn, dn
+    
+is converted to
+
+    a1, a2, ..., an, b1, b2, ..., bn, c1, c2, ..., cn, d1, d2, ..., dn.
+    
+Next we use [LZ4](https://github.com/lz4/lz4) to compress the integer data.
 
 References
 ----------

@@ -2,7 +2,7 @@
 
 Introduction
 ------------
-Trico is a C library for lossless compression and decompression of triangular 3D meshes and point clouds.
+Trico is a C library for fast lossless compression and decompression of triangular 3D meshes and point clouds.
 Currently Trico supports the compression of
   - 3D vertices of type `float`
   - 3D vertices of type `double`
@@ -218,8 +218,19 @@ If you use a PLY file as input for compression, all the recognized streams will 
 
 Performance
 -----------
-The following results are an indication.
+The following results are an indication of performance. The compression ratio depends on the order of the triangles and vertices in the input file, which may vary depending on the program that was used to generate the input file.
+The files were taken from the [Stanford 3D Scanning Repository](http://graphics.stanford.edu/data/3Dscanrep/). The Stanford bunny that I used in the tests was obtained from another source, as the original ply file contains 2 extra attribute streams which are ignored by `trico_encoder`.
 
+Model | Binary STL | Binary PLY | Trico | Compression ratio vs STL | Compression ratio vs PLY
+----- | ---------- | ---------- | ----- | ------------------------ | ------------------------
+Stanford Bunny | 3392 KB | 1291 KB | 571 KB | 5.94 | 2.26
+Happy Buddha | 53112 KB | 20180 KB | 9146 KB | 5.81 | 2.21
+Dragon | 42550 KB | 16192 KB | 7274 KB | 5.85 | 2.23
+Armadillo | 16892 KB | 6757 KB | 4059 KB | 4.16 | 1.66
+Lucy | 1369910 KB | 520566 KB | 230609 KB | 5.94 | 2.26
+Asian Dragon | 352493 KB | 133949 KB | 49896 KB | 7.06 | 2.68
+Vellum manuscript | 210246 KB | 86241 KB | 23465 KB | 8.96 | 3.68
+Thai Statue | 488282 KB | 185548 KB | 86165 KB | 5.67 | 2.15
 
 References
 ----------

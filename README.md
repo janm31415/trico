@@ -6,10 +6,16 @@ Trico is a C library for lossless compression and decompression of triangular 3D
 Currently Trico supports the compression of
   - 3D vertices of type `float`
   - 3D vertices of type `double`
-  - 3D normals of type `float`
-  - 3D vertices of type `double`
-  - uv coordinates of type `float`
-  - uv coordinates of type `double`
+  - 3D vertex normals of type `float`
+  - 3D vertex normals of type `double`
+  - 3D triangle normals of type `float`
+  - 3D triangle normals of type `double`
+  - uv coordinates per vertex of type `float`
+  - uv coordinates per vertex of type `double`
+  - uv coordinates per triangle of type `float`
+  - uv coordinates per triangle of type `double`
+  - vertex colors (rgba represented as a single `uint32_t`)
+  - triangle colors (rgba represented as a single `uint32_t`)  
   - triangle indices of type `uint32_t`
   - triangle indices of type `uint64_t`
   - attribute lists of type `float`
@@ -189,7 +195,7 @@ Currently the source code will create two command line applications: `trico_enco
 ### trico_encoder
 `trico_encoder` can read binary STL files and binary or ascii PLY files. As output it will generate a Trico-encoded file, containing the compressed data of the input file. There are some restrictions on the input PLY files however: when reading PLY files with double precision data, this double precision data will be converted to single precision data by the internal PLY reader, so there is some loss of accuracy here. Note that Trico can compress double precision data without loss of accuracy, but for simplicity of the reader in the encoding tool I've opted to only fully support single precision PLY files. If you need to compress PLY files with double precision this should be fairly straight forward: Essentially you can take the implementation in file `ioply.c` but replace `float` by `double` for the vertices/normals/texture data.
 
-The basic usage of the encoder expects an input file and preferably also an output file. If an output file is omitted, `trico_encoder` will replace the extension of the input file by `.trc` and write to that file., but generally
+The basic usage of the encoder expects an input file and preferably also an output file. If an output file is omitted, `trico_encoder` will replace the extension of the input file by `.trc` and write to that file, but generally
 
     ./trico_encoder -i my_data/stl_file.stl  -o out.trc
     
@@ -206,6 +212,14 @@ If you use a PLY file as input for compression, all the recognized streams will 
     ./trico_encoder -i my_data/ply_file.ply -o out.trc -plyskip color
 
 ### trico_decoder
+`trico_decoder` reads Trico-encoded files, decompresses the data, and writes the output to a STL or PLY file:
+
+    ./trico_decoder -i in.trc -o out.stl
+
+Performance
+-----------
+The following results are an indication.
+
 
 References
 ----------

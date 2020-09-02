@@ -4,7 +4,7 @@
 #include <trico/alloc.h>
 #include <trico/trico.h>
 
-#include <trico/iostl.h>
+#include <trico_io/iostl.h>
 
 #include <iostream>
 #include <fstream>

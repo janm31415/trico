@@ -2,8 +2,9 @@
 #include "test_assert.h"
 
 #include <trico/alloc.h>
-#include <trico/iostl.h>
 #include <trico/transpose_aos_to_soa.h>
+
+#include <trico_io/iostl.h>
 
 #include <lz4/lz4.h>
 

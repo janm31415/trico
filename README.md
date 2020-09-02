@@ -285,7 +285,7 @@ and this list is converted to
     
 Arranging the data like this makes it hopefully easier for a prediction algorithm to guess the next floating point value, so that we get better compression. The compression algorithm for a list of floating point values is based on the paper "High Throughput Compression of Double-Precision Floating-Point Data" by Martin Burtscher and Paruj Ratanaworabhan, but with some modifications, as the paper is focused on double precision, and we are mainly interested in single precision.
 
-Integer data is also rearranged first. We apply byte interleaving. Suppose we have an integer array where an integer consists of four bytes `a`, `b`, `c`, and `d`, then we rearrange as follows
+Integer data is also rearranged first. We apply byte interleaving. Suppose we have an integer array where an integer consists of four bytes `a`, `b`, `c`, and `d`, then we rearrange as follows:
 
     a1, b1, c1, d1, a2, b2, c2, d2, ..., an, bn, cn, dn
     
@@ -294,6 +294,8 @@ is converted to
     a1, a2, ..., an, b1, b2, ..., bn, c1, c2, ..., cn, d1, d2, ..., dn.
     
 Next we use [LZ4](https://github.com/lz4/lz4) to compress the integer data.
+
+The floating point and integer compression methods that are used in Trico are designed to be fast. We could have used other compression algorithms such as [Zlib](https://zlib.net/) that give higher compression ratios, but at the cost of speed. If high compression ratio is the goal, and speed is not an issue, then we refer to [OpenCTM](http://openctm.sourceforge.net/).
 
 References
 ----------

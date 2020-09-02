@@ -1,5 +1,14 @@
 # Trico
 
+Content
+-------
+* [Introduction](#introduction)
+* [Building](#building)
+* [Usage](#usage)
+* [Tools](#tools)
+* [Performance](#performance)
+* [References](#references)
+
 Introduction
 ------------
 Trico is a C library for fast lossless compression and decompression of triangular 3D meshes and point clouds.

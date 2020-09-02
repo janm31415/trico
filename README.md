@@ -271,6 +271,7 @@ Offset | Type | Description
 5 | | compressed stream
 
 The length data does not necessarily equal the number of bytes of the uncompressed stream. For instance for vertex data the length data equals the number of vertices, but the byte length would then be the number of vertices times `3` times `sizeof(float)`.
+The length data of uncompressed streams is necessary for the decompression of Trico-encoded files. This allows the user to assign sufficient memory for capturing the decompressed data.
 
 For the compressed stream we distinguish between floating point types and integer types.
 

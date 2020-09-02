@@ -1,6 +1,6 @@
 #if defined (__cplusplus)
 extern "C" {
-#endif
+#endif // #if defined (__cplusplus)
 
 #ifndef TRICO_FLOATING_POINT_STREAM_COMPRESSION_H
 #define TRICO_FLOATING_POINT_STREAM_COMPRESSION_H
@@ -16,8 +16,8 @@ TRICO_API void trico_compress_double_precision(uint32_t* nr_of_compressed_bytes,
 
 TRICO_API void trico_decompress_double_precision(uint32_t* number_of_doubles, double** out, const uint8_t* compressed);
 
-#endif
+#endif // #ifndef TRICO_FLOATING_POINT_STREAM_COMPRESSION_H
 
 #if defined (__cplusplus)
   }
-#endif
+#endif // #if defined (__cplusplus)

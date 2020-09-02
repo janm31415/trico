@@ -1,6 +1,6 @@
 #if defined (__cplusplus)
 extern "C" {
-#endif
+#endif // #if defined (__cplusplus)
 
 #ifndef TRICO_ALLOC_H
 #define TRICO_ALLOC_H
@@ -29,8 +29,8 @@ static inline void trico_free(void* ptr)
   free(ptr);
   }
 
-#endif
+#endif // #ifndef TRICO_ALLOC_H
 
 #if defined (__cplusplus)
   }
-#endif
+#endif // #if defined (__cplusplus)

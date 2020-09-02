@@ -266,9 +266,14 @@ int trico_write_vertices(void* a, const float* vertices, uint32_t nr_of_vertices
   return trico_write_vec3_float(a, vertices, nr_of_vertices, trico_vertex_float_stream);
   }
 
-int trico_write_normals(void* a, const float* normals, uint32_t nr_of_normals)
+int trico_write_vertex_normals(void* a, const float* normals, uint32_t nr_of_normals)
   {
-  return trico_write_vec3_float(a, normals, nr_of_normals, trico_normal_float_stream);
+  return trico_write_vec3_float(a, normals, nr_of_normals, trico_vertex_normal_float_stream);
+  }
+
+int trico_write_triangle_normals(void* a, const float* normals, uint32_t nr_of_normals)
+  {
+  return trico_write_vec3_float(a, normals, nr_of_normals, trico_triangle_normal_float_stream);
   }
 
 int trico_write_attributes_float(void* a, const float* attrib, uint32_t nr_of_attribs)
@@ -426,9 +431,14 @@ int trico_write_vertices_double(void* a, const double* vertices, uint32_t nr_of_
   return trico_write_vec3_double(a, vertices, nr_of_vertices, trico_vertex_double_stream);
   }
 
-int trico_write_normals_double(void* a, const double* normals, uint32_t nr_of_normals)
+int trico_write_vertex_normals_double(void* a, const double* normals, uint32_t nr_of_normals)
   {
-  return trico_write_vec3_double(a, normals, nr_of_normals, trico_normal_double_stream);
+  return trico_write_vec3_double(a, normals, nr_of_normals, trico_vertex_normal_double_stream);
+  }
+
+int trico_write_triangle_normals_double(void* a, const double* normals, uint32_t nr_of_normals)
+  {
+  return trico_write_vec3_double(a, normals, nr_of_normals, trico_triangle_normal_double_stream);
   }
 
 int trico_write_triangles_long(void* a, const uint64_t* tria_indices, uint32_t nr_of_triangles)
@@ -521,10 +531,10 @@ int trico_write_triangles_long(void* a, const uint64_t* tria_indices, uint32_t n
   return 1;
   }
 
-int trico_write_uv(void* a, const float* uv, uint32_t nr_of_uv_positions)
+static int trico_write_vec2_float(void* a, const float* uv, uint32_t nr_of_uv_positions, enum trico_stream_type st)
   {
   struct trico_archive* arch = (struct trico_archive*)a;
-  uint8_t header = (uint8_t)trico_uv_float_stream;
+  uint8_t header = (uint8_t)st;
   if (!write(&header, 1, 1, arch))
     return 0;
   if (!write(&nr_of_uv_positions, sizeof(uint32_t), 1, arch))
@@ -559,10 +569,20 @@ int trico_write_uv(void* a, const float* uv, uint32_t nr_of_uv_positions)
   return 1;
   }
 
-int trico_write_uv_double(void* a, const double* uv, uint32_t nr_of_uv_positions)
+int trico_write_uv_per_vertex(void* a, const float* uv, uint32_t nr_of_uv_positions)
+  {
+  return trico_write_vec2_float(a, uv, nr_of_uv_positions, trico_uv_per_vertex_float_stream);
+  }
+
+int trico_write_uv_per_triangle(void* a, const float* uv, uint32_t nr_of_uv_positions)
+  {
+  return trico_write_vec2_float(a, uv, nr_of_uv_positions, trico_uv_per_triangle_float_stream);
+  }
+
+static int trico_write_vec2_double(void* a, const double* uv, uint32_t nr_of_uv_positions, enum trico_stream_type st)
   {
   struct trico_archive* arch = (struct trico_archive*)a;
-  uint8_t header = (uint8_t)trico_uv_double_stream;
+  uint8_t header = (uint8_t)st;
   if (!write(&header, 1, 1, arch))
     return 0;
   if (!write(&nr_of_uv_positions, sizeof(uint32_t), 1, arch))
@@ -595,6 +615,16 @@ int trico_write_uv_double(void* a, const double* uv, uint32_t nr_of_uv_positions
   trico_free(compressed_v);
 
   return 1;
+  }
+
+int trico_write_uv_per_vertex_double(void* a, const double* uv, uint32_t nr_of_uv_positions)
+  {
+  return trico_write_vec2_double(a, uv, nr_of_uv_positions, trico_uv_per_vertex_float_stream);
+  }
+
+int trico_write_uv_per_triangle_double(void* a, const double* uv, uint32_t nr_of_uv_positions)
+  {
+  return trico_write_vec2_double(a, uv, nr_of_uv_positions, trico_uv_per_triangle_float_stream);
   }
 
 int trico_write_attributes_uint8(void* a, const uint8_t* attrib, uint32_t nr_of_attribs)
@@ -665,10 +695,10 @@ int trico_write_attributes_uint16(void* a, const uint16_t* attrib, uint32_t nr_o
   return 1;
   }
 
-int trico_write_attributes_uint32(void* a, const uint32_t* attrib, uint32_t nr_of_attribs)
+static int trico_write_uint32(void* a, const uint32_t* attrib, uint32_t nr_of_attribs, enum trico_stream_type st)
   {
   struct trico_archive* arch = (struct trico_archive*)a;
-  uint8_t header = (uint8_t)trico_attribute_uint32_stream;
+  uint8_t header = (uint8_t)st;
   if (!write(&header, 1, 1, arch))
     return 0;
   if (!write(&nr_of_attribs, sizeof(uint32_t), 1, arch))
@@ -720,6 +750,21 @@ int trico_write_attributes_uint32(void* a, const uint32_t* attrib, uint32_t nr_o
   trico_free(b4);
 
   return 1;
+  }
+
+int trico_write_attributes_uint32(void* a, const uint32_t* attrib, uint32_t nr_of_attribs)
+  {
+  return trico_write_uint32(a, attrib, nr_of_attribs, trico_attribute_uint32_stream);
+  }
+
+int trico_write_vertex_colors(void* archive, const uint32_t* color, uint32_t nr_of_colors)
+  {
+  return trico_write_uint32(archive, color, nr_of_colors, trico_vertex_color_stream);
+  }
+
+int trico_write_triangle_colors(void* archive, const uint32_t* color, uint32_t nr_of_colors)
+  {
+  return trico_write_uint32(archive, color, nr_of_colors, trico_triangle_color_stream);
   }
 
 int trico_write_attributes_uint64(void* a, const uint64_t* attrib, uint32_t nr_of_attribs)
@@ -841,7 +886,8 @@ uint32_t trico_get_number_of_triangles(void* a)
 uint32_t trico_get_number_of_uvs(void* a)
   {
   struct trico_archive* arch = (struct trico_archive*)a;
-  if (arch->next_stream_type == trico_uv_float_stream || arch->next_stream_type == trico_uv_double_stream)
+  if (arch->next_stream_type == trico_uv_per_vertex_float_stream || arch->next_stream_type == trico_uv_per_vertex_double_stream ||
+    arch->next_stream_type == trico_uv_per_triangle_float_stream || arch->next_stream_type == trico_uv_per_triangle_double_stream)
     {
     uint32_t nr_uvs;
     if (!read_inplace(&nr_uvs, sizeof(uint32_t), 1, arch))
@@ -854,12 +900,27 @@ uint32_t trico_get_number_of_uvs(void* a)
 uint32_t trico_get_number_of_normals(void* a)
   {
   struct trico_archive* arch = (struct trico_archive*)a;
-  if (arch->next_stream_type == trico_normal_float_stream || arch->next_stream_type == trico_normal_double_stream)
+  if (arch->next_stream_type == trico_vertex_normal_float_stream || arch->next_stream_type == trico_vertex_normal_double_stream ||
+    arch->next_stream_type == trico_triangle_normal_float_stream || arch->next_stream_type == trico_triangle_normal_double_stream
+    )
     {
     uint32_t nr_normals;
     if (!read_inplace(&nr_normals, sizeof(uint32_t), 1, arch))
       return 0;
     return nr_normals;
+    }
+  return 0;
+  }
+
+uint32_t trico_get_number_of_colors(void* a)
+  {
+  struct trico_archive* arch = (struct trico_archive*)a;
+  if (arch->next_stream_type == trico_vertex_color_stream || arch->next_stream_type == trico_triangle_color_stream)
+    {
+    uint32_t nr_colors;
+    if (!read_inplace(&nr_colors, sizeof(uint32_t), 1, arch))
+      return 0;
+    return nr_colors;
     }
   return 0;
   }
@@ -939,9 +1000,14 @@ int trico_read_vertices(void* a, float** vertices)
   return trico_read_vec3_float(a, vertices, trico_vertex_float_stream);
   }
 
-int trico_read_normals(void* a, float** normals)
+int trico_read_vertex_normals(void* a, float** normals)
   {
-  return trico_read_vec3_float(a, normals, trico_normal_float_stream);
+  return trico_read_vec3_float(a, normals, trico_vertex_normal_float_stream);
+  }
+
+int trico_read_triangle_normals(void* a, float** normals)
+  {
+  return trico_read_vec3_float(a, normals, trico_triangle_normal_float_stream);
   }
 
 static int trico_read_vec3_double(void* a, double** vertices, enum trico_stream_type st)
@@ -1005,9 +1071,14 @@ int trico_read_vertices_double(void* a, double** vertices)
   return trico_read_vec3_double(a, vertices, trico_vertex_double_stream);
   }
 
-int trico_read_normals_double(void* a, double** normals)
+int trico_read_vertex_normals_double(void* a, double** normals)
   {
-  return trico_read_vec3_double(a, normals, trico_normal_double_stream);
+  return trico_read_vec3_double(a, normals, trico_vertex_normal_double_stream);
+  }
+
+int trico_read_triangle_normals_double(void* a, double** normals)
+  {
+  return trico_read_vec3_double(a, normals, trico_triangle_normal_double_stream);
   }
 
 int trico_read_triangles(void* a, uint32_t** triangles)
@@ -1173,10 +1244,10 @@ int trico_read_triangles_long(void* a, uint64_t** triangles)
   return 1;
   }
 
-int trico_read_uv(void* a, float** uv)
+static int trico_read_vec2_float(void* a, float** uv, enum trico_stream_type st)
   {
   struct trico_archive* arch = (struct trico_archive*)a;
-  if (trico_get_next_stream_type(arch) != trico_uv_float_stream)
+  if (trico_get_next_stream_type(arch) != st)
     return 0;
 
   uint32_t nr_uv_positions;
@@ -1218,10 +1289,20 @@ int trico_read_uv(void* a, float** uv)
   return 1;
   }
 
-int trico_read_uv_double(void* a, double** uv)
+int trico_read_uv_per_vertex(void* archive, float** uv)
+  {
+  return trico_read_vec2_float(archive, uv, trico_uv_per_vertex_float_stream);
+  }
+
+int trico_read_uv_per_triangle(void* archive, float** uv)
+  {
+  return trico_read_vec2_float(archive, uv, trico_uv_per_triangle_float_stream);
+  }
+
+int trico_read_vec2_double(void* a, double** uv, enum trico_stream_type st)
   {
   struct trico_archive* arch = (struct trico_archive*)a;
-  if (trico_get_next_stream_type(arch) != trico_uv_double_stream)
+  if (trico_get_next_stream_type(arch) != st)
     return 0;
 
   uint32_t nr_uv_positions;
@@ -1261,6 +1342,16 @@ int trico_read_uv_double(void* a, double** uv)
   read_next_stream_type(arch);
 
   return 1;
+  }
+
+int trico_read_uv_per_vertex_double(void* archive, double** uv)
+  {
+  return trico_read_vec2_double(archive, uv, trico_uv_per_vertex_double_stream);
+  }
+
+int trico_read_uv_per_triangle_double(void* archive, double** uv)
+  {
+  return trico_read_vec2_double(archive, uv, trico_uv_per_triangle_double_stream);
   }
 
 int trico_read_attributes_float(void* a, float** attrib)
@@ -1398,10 +1489,10 @@ int trico_read_attributes_uint16(void* a, uint16_t** attrib)
   return 1;
   }
 
-int trico_read_attributes_uint32(void* a, uint32_t** attrib)
+static int trico_read_uint32(void* a, uint32_t** attrib, enum trico_stream_type st)
   {
   struct trico_archive* arch = (struct trico_archive*)a;
-  if (trico_get_next_stream_type(arch) != trico_attribute_uint32_stream)
+  if (trico_get_next_stream_type(arch) != st)
     return 0;
 
   uint32_t nr_of_attribs;
@@ -1457,6 +1548,21 @@ int trico_read_attributes_uint32(void* a, uint32_t** attrib)
   read_next_stream_type(arch);
 
   return 1;
+  }
+
+int trico_read_attributes_uint32(void* a, uint32_t** attrib)
+  {
+  return trico_read_uint32(a, attrib, trico_attribute_uint32_stream);
+  }
+
+int trico_read_vertex_colors(void* archive, uint32_t** color)
+  {
+  return trico_read_uint32(archive, color, trico_vertex_color_stream);
+  }
+
+int trico_read_triangle_colors(void* archive, uint32_t** color)
+  {
+  return trico_read_uint32(archive, color, trico_triangle_color_stream);
   }
 
 int trico_read_attributes_uint64(void* a, uint64_t** attrib)
@@ -1572,10 +1678,14 @@ int trico_read_attributes_uint64(void* a, uint64_t** attrib)
       case trico_vertex_double_stream: return trico_read_vertices_double(arch, NULL);
       case trico_triangle_uint32_stream: return trico_read_triangles(arch, NULL);
       case trico_triangle_uint64_stream: return trico_read_triangles_long(arch, NULL);
-      case trico_uv_float_stream: return trico_read_uv(arch, NULL);
-      case trico_uv_double_stream: return trico_read_uv_double(arch, NULL);
-      case trico_normal_float_stream: return trico_read_normals(arch, NULL);
-      case trico_normal_double_stream: return trico_read_normals_double(arch, NULL);
+      case trico_uv_per_vertex_float_stream: return trico_read_uv_per_vertex(arch, NULL);
+      case trico_uv_per_vertex_double_stream: return trico_read_uv_per_vertex_double(arch, NULL);
+      case trico_uv_per_triangle_float_stream: return trico_read_uv_per_triangle(arch, NULL);
+      case trico_uv_per_triangle_double_stream: return trico_read_uv_per_triangle_double(arch, NULL);
+      case trico_vertex_normal_float_stream: return trico_read_vertex_normals(arch, NULL);
+      case trico_vertex_normal_double_stream: return trico_read_vertex_normals_double(arch, NULL);
+      case trico_triangle_normal_float_stream: return trico_read_triangle_normals(arch, NULL);
+      case trico_triangle_normal_double_stream: return trico_read_triangle_normals_double(arch, NULL);
       case trico_attribute_float_stream: return trico_read_attributes_float(arch, NULL);
       case trico_attribute_double_stream: return trico_read_attributes_double(arch, NULL);
       case trico_attribute_uint8_stream: return trico_read_attributes_uint8(arch, NULL);

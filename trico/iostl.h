@@ -1,6 +1,6 @@
 #if defined (__cplusplus)
 extern "C" {
-#endif
+#endif // #if defined (__cplusplus)
 
 #ifndef TRICO_IOSTL_H
 #define TRICO_IOSTL_H
@@ -19,8 +19,8 @@ TRICO_API int trico_read_stl_full(uint32_t* nr_of_vertices, float** vertices, ui
 
 TRICO_API int trico_write_stl(const float* vertices, const uint32_t* triangles, const uint32_t nr_of_triangles, const float* triangle_normals, const uint16_t* attributes, const char* filename);
 
-#endif
+#endif // #ifndef TRICO_IOSTL_H
 
 #if defined (__cplusplus)
   }
-#endif
+#endif // #if defined (__cplusplus)

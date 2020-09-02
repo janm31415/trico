@@ -2,6 +2,7 @@
 set(HDRS
 alloc.h
 floating_point_stream_compression.h
+ioply.h
 iostl.h
 transpose_aos_to_soa.h
 trico_api.h
@@ -10,6 +11,7 @@ trico.h
 	
 set(SRCS
 floating_point_stream_compression.c
+ioply.c
 iostl.c
 transpose_aos_to_soa.c
 trico.c
@@ -46,4 +48,5 @@ target_include_directories(trico
 target_link_libraries(trico
     PRIVATE	
     lz4
+    rply
     )	

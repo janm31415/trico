@@ -221,6 +221,10 @@ Performance
 The following results are an indication of performance. The compression ratio depends on the order of the triangles and vertices in the input file, which may vary depending on the program that was used to generate the input file.
 The files were taken from the [Stanford 3D Scanning Repository](http://graphics.stanford.edu/data/3Dscanrep/). The Stanford bunny that I used in the tests was obtained from another source, as the original ply file contains 2 extra attribute streams which are ignored by `trico_encoder`.
 
+The compression ratios versus STL files are quite high. This is because the STL format contains a lot of redundant information. First of all triangle normals can be computed from the vertices and the triangles, and thus do not need to be saved. Second, the 16 bit attribute data in the STL file is typically unused, and thus can be removed. Finally, the STL file format saves data per triangle. A typical vertex belongs on average to 6 triangles. The STL file format will thus save this vertex 6 times. The `trico_encoder` tool will read the STL file, and convert it to an indexed format where each vertex is in a list, and triangles refer to vertices via indices (similar to how a PLY file builds its 3D mesh structure). Then the vertex list and triangle list are compressed. This explains the higher compression ratios for STL files.
+
+The true compression ratio measure for Trico is thus the compression ratio compared to the binary PLY file. 
+
 Model | Triangles | Vertices | Binary STL | Binary PLY | Trico | Compression ratio vs STL | Compression ratio vs PLY
 ----- | --------- | -------- | ---------- | ---------- | ----- | ------------------------ | ------------------------
 Stanford Bunny | 69451 | 35947 | 3392 KB | 1291 KB | 571 KB | 5.94 | 2.26

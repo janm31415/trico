@@ -35,7 +35,7 @@ Let's assume that we have a 3D mesh in memory that we want to compress. The 3D m
     uint32_t nr_of_triangles;
     uint32_t* triangles;
 
-Note that Trico contains functionality to read [STL](https://en.wikipedia.org/wiki/STL_(file_format)) files. The above data can be initialized by reading an STL file as follows:
+Note that Trico contains functionality to read [STL](https://en.wikipedia.org/wiki/STL_(file_format)) files and [PLY](https://en.wikipedia.org/wiki/PLY_(file_format)) files via the library [trico_io](https://github.com/janm31415/trico/tree/master/trico_io). The above data can be initialized by reading an STL file as follows:
 
     int read_successfully = trico_read_stl(&nr_of_vertices, &vertices, &nr_of_triangles, &triangles, "my_stl_file.stl");
     
@@ -181,8 +181,34 @@ Now `vertices` and `tria_indices` contain the decompressed 3D mesh data. It's ho
   
       trico_close_archive(arch);
       free(buffer);
-            
+      
+Tools
+-----
+Currently the source code will create two command line applications: `trico_encoder` and `trico_decoder`. If you run these tools from the command line without arguments you'll get an overview of their usage and options.
+
+### trico_encoder
+`trico_encoder` can read binary STL files and binary or ascii PLY files. As output it will generate a Trico-encoded file, containing the compressed data of the input file. There are some restrictions on the input PLY files however: when reading PLY files with double precision data, this double precision data will be converted to single precision data by the internal PLY reader, so there is some loss of accuracy here. Note that Trico can compress double precision data without loss of accuracy, but for simplicity of the reader in the encoding tool I've opted to only fully support single precision PLY files. If you need to compress PLY files with double precision this should be fairly straight forward: Essentially you can take the implementation in file `ioply.c` but replace `float` by `double` for the vertices/normals/texture data.
+
+The basic usage of the encoder expects an input file and preferably also an output file. If an output file is omitted, `trico_encoder` will replace the extension of the input file by `.trc` and write to that file., but generally
+
+    ./trico_encoder -i my_data/stl_file.stl  -o out.trc
+    
+will read the input file, and write the Trico-encoded file to `out.trc`.
+
+There are some extra options available:
+
+The STL file format contains, apart from vertices and triangles, also triangle normals and a 16 bit attribute value per triangle. By default, the triangle normals and the attribute values are not saved in the Trico-encoded output file. The reason being that triangle normals can simply be computed from the vertices and triangles, and thus they do not need to be saved, and the attribute values are mostly ignored. However, if you want to include the triangle normals or the attributes you should use
+
+    ./trico_encoder -i my_data/stl_file.stl  -o out.trc -stladd normal -stladd uint16
+    
+If you use a PLY file as input for compression, all the recognized streams will be saved to the Trico-encoded output file. With the command `-plyskip` you can choose to skip certain attribute streams, e.g.
+
+    ./trico_encoder -i my_data/ply_file.ply -o out.trc -plyskip color
+
+### trico_decoder
+
 References
 ----------
 For fast compression of integer types I use [LZ4](https://github.com/lz4/lz4).
 The compression of floating point and double precision streams is based on the paper "High Throughput Compression of Double-Precision Floating-Point Data" by Martin Burtscher and Paruj Ratanaworabhan, with some modifications.
+For reading ply files I use [rply](http://w3.impa.br/~diego/software/rply/).

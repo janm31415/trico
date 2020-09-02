@@ -1,6 +1,6 @@
 #include <trico/alloc.h>
-#include <trico/ioply.h>
-#include <trico/iostl.h>
+#include <trico_io/ioply.h>
+#include <trico_io/iostl.h>
 #include <trico/trico.h>
 
 #include <stdio.h>

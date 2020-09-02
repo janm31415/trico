@@ -18,6 +18,7 @@ add_subdirectory(lz4)
 add_subdirectory(rply)
 add_subdirectory(tools)
 add_subdirectory(trico)
+add_subdirectory(trico_io)
 add_subdirectory(trico.tests)
 
 

@@ -45,6 +45,7 @@ target_include_directories(trico.tests
 target_link_libraries(trico.tests
     PRIVATE
     trico
+    trico_io
     lz4
     )	
   

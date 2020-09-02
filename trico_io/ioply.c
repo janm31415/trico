@@ -1,8 +1,8 @@
 #include "ioply.h"
-#include "alloc.h"
 #include <stdio.h>
 #include <string.h>
 
+#include <trico/alloc.h>
 #include <rply/rply.h>
 
 

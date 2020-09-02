@@ -1,16 +1,13 @@
 
 set(HDRS
-alloc.h
-floating_point_stream_compression.h
-transpose_aos_to_soa.h
-trico_api.h
-trico.h
+ioply.h
+iostl.h
+trico_io_api.h
 )
 	
 set(SRCS
-floating_point_stream_compression.c
-transpose_aos_to_soa.c
-trico.c
+ioply.c
+iostl.c
 )
 
 if (WIN32)
@@ -24,24 +21,24 @@ endif (WIN32)
 add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
-set(TRICO_LIBRARY_TYPE STATIC)
+set(TRICO_IO_LIBRARY_TYPE STATIC)
 
 if (${TRICO_SHARED} STREQUAL "yes")
 add_definitions(-DTRICO_DLL_EXPORT)
-set(TRICO_LIBRARY_TYPE SHARED)
+set(TRICO_IO_LIBRARY_TYPE SHARED)
 endif (${TRICO_SHARED} STREQUAL "yes")
 
-add_library(trico ${TRICO_LIBRARY_TYPE} ${HDRS} ${SRCS})
+add_library(trico_io ${TRICO_IO_LIBRARY_TYPE} ${HDRS} ${SRCS})
 
 source_group("Header Files" FILES ${hdrs})
 source_group("Source Files" FILES ${srcs})
 
-target_include_directories(trico
+target_include_directories(trico_io
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../
     )	
     
-target_link_libraries(trico
+target_link_libraries(trico_io
     PRIVATE	
-    lz4
+    rply
     )	

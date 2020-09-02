@@ -35,4 +35,5 @@ target_include_directories(trico_encoder
 target_link_libraries(trico_encoder
     PRIVATE	
     trico
+    trico_io
     )	

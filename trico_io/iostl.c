@@ -1,5 +1,7 @@
 #include "iostl.h"
-#include "alloc.h"
+
+#include <trico/alloc.h>
+
 #include <stdio.h>
 #include <string.h>
 

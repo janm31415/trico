@@ -42,6 +42,7 @@ target_include_directories(trico_decoder
 target_link_libraries(trico_decoder
     PRIVATE	
     trico
+    trico_io
     )	
 
 if (UNIX)

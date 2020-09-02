@@ -332,7 +332,7 @@ int main(int argc, const char** argv)
       case trico_uv_per_triangle_float_stream:
       {
       nr_of_texcoords = trico_get_number_of_uvs(arch);
-      texcoords = (float*)malloc(nr_of_texcoords * 6 * sizeof(float));
+      texcoords = (float*)malloc(nr_of_texcoords * 2 * sizeof(float));
       if (!trico_read_uv_per_triangle(arch, &texcoords))
         {
         free(texcoords);

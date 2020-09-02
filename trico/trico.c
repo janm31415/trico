@@ -531,22 +531,22 @@ int trico_write_triangles_long(void* a, const uint64_t* tria_indices, uint32_t n
   return 1;
   }
 
-static int trico_write_vec2_float(void* a, const float* uv, uint32_t nr_of_uv_positions, enum trico_stream_type st)
+static int trico_write_vec2_float(void* a, const float* uv, uint32_t nr_of_vec2_positions, enum trico_stream_type st)
   {
   struct trico_archive* arch = (struct trico_archive*)a;
   uint8_t header = (uint8_t)st;
   if (!write(&header, 1, 1, arch))
     return 0;
-  if (!write(&nr_of_uv_positions, sizeof(uint32_t), 1, arch))
+  if (!write(&nr_of_vec2_positions, sizeof(uint32_t), 1, arch))
     return 0;
 
-  float* u = (float*)trico_malloc(sizeof(float)*nr_of_uv_positions);
-  float* v = (float*)trico_malloc(sizeof(float)*nr_of_uv_positions);
-  trico_transpose_uv_aos_to_soa(&u, &v, uv, nr_of_uv_positions);
+  float* u = (float*)trico_malloc(sizeof(float)*nr_of_vec2_positions);
+  float* v = (float*)trico_malloc(sizeof(float)*nr_of_vec2_positions);
+  trico_transpose_uv_aos_to_soa(&u, &v, uv, nr_of_vec2_positions);
 
   uint32_t nr_of_compressed_u_bytes;
   uint8_t* compressed_u;
-  trico_compress(&nr_of_compressed_u_bytes, &compressed_u, u, nr_of_uv_positions, 4, 10);
+  trico_compress(&nr_of_compressed_u_bytes, &compressed_u, u, nr_of_vec2_positions, 4, 10);
 
   trico_free(u);
   if (!write(&nr_of_compressed_u_bytes, sizeof(uint32_t), 1, arch))
@@ -557,7 +557,7 @@ static int trico_write_vec2_float(void* a, const float* uv, uint32_t nr_of_uv_po
 
   uint32_t nr_of_compressed_v_bytes;
   uint8_t* compressed_v;
-  trico_compress(&nr_of_compressed_v_bytes, &compressed_v, v, nr_of_uv_positions, 4, 10);
+  trico_compress(&nr_of_compressed_v_bytes, &compressed_v, v, nr_of_vec2_positions, 4, 10);
 
   trico_free(v);
   if (!write(&nr_of_compressed_v_bytes, sizeof(uint32_t), 1, arch))
@@ -576,7 +576,7 @@ int trico_write_uv_per_vertex(void* a, const float* uv, uint32_t nr_of_uv_positi
 
 int trico_write_uv_per_triangle(void* a, const float* uv, uint32_t nr_of_uv_positions)
   {
-  return trico_write_vec2_float(a, uv, nr_of_uv_positions, trico_uv_per_triangle_float_stream);
+  return trico_write_vec2_float(a, uv, nr_of_uv_positions*3, trico_uv_per_triangle_float_stream);
   }
 
 static int trico_write_vec2_double(void* a, const double* uv, uint32_t nr_of_uv_positions, enum trico_stream_type st)
@@ -1250,8 +1250,8 @@ static int trico_read_vec2_float(void* a, float** uv, enum trico_stream_type st)
   if (trico_get_next_stream_type(arch) != st)
     return 0;
 
-  uint32_t nr_uv_positions;
-  if (!read(&nr_uv_positions, sizeof(uint32_t), 1, arch))
+  uint32_t nr_vec2_positions;
+  if (!read(&nr_vec2_positions, sizeof(uint32_t), 1, arch))
     return 0;
 
   uint32_t nr_of_compressed_bytes;
@@ -1275,11 +1275,11 @@ static int trico_read_vec2_float(void* a, float** uv, enum trico_stream_type st)
 
   trico_free(compressed);
 
-  assert(nr_of_floats_u == nr_uv_positions);
+  assert(nr_of_floats_u == nr_vec2_positions);
   assert(nr_of_floats_v == nr_of_floats_u);
 
   if (uv != NULL)
-    trico_transpose_uv_soa_to_aos(uv, decompressed_u, decompressed_v, nr_uv_positions);
+    trico_transpose_uv_soa_to_aos(uv, decompressed_u, decompressed_v, nr_vec2_positions);
 
   trico_free(decompressed_u);
   trico_free(decompressed_v);

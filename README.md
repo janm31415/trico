@@ -233,9 +233,9 @@ The files were taken from the [Stanford 3D Scanning Repository](http://graphics.
 
 The compression ratios versus STL files are quite high. This is because the STL format contains a lot of redundant information. First of all triangle normals can be computed from the vertices and the triangles, and thus do not need to be saved. Second, the 16 bit attribute data in the STL file is typically unused, and thus can be removed. Finally, the STL file format saves data per triangle. A typical vertex belongs on average to 6 triangles. The STL file format will thus save this vertex 6 times. The `trico_encoder` tool will read the STL file, and convert it to an indexed format where each vertex is in a list, and triangles refer to vertices via indices (similar to how a PLY file builds its 3D mesh structure). Then the vertex list and triangle list are compressed. This explains the higher compression ratios for STL files.
 
-The true compression ratio measure for Trico is thus the compression ratio compared to the binary PLY file. 
+The true compression ratio measure for Trico is thus the compression ratio compared to the binary PLY file. In the table below I've also included a zipped version of the binary PLY file. Grosso modo the compression ratios of Trico and a zipped PLY file are comparable, but compression and decompression with Trico is much faster than zipping.
 
-Model | Triangles | Vertices | Binary STL | Binary PLY | Binary PLY Zipped | Trico | Compression ratio vs STL | Compression ratio vs PLY | Compression ratio vs PLY zipped
+Model | Triangles | Vertices | Binary STL | Binary PLY | Binary PLY zipped | Trico | Compression ratio vs STL | Compression ratio vs PLY | Compression ratio vs PLY zipped
 ----- | --------- | -------- | ---------- | ---------- | ----------------- | ----- | ------------------------ | ------------------------ | -------------------------------
 Stanford Bunny | 69451 | 35947 | 3392 KB | 1291 KB | 522 KB | 571 KB | 5.94 | 2.26 | 0.91
 Happy Buddha | 1087716 | 543652 | 53112 KB | 20180 KB | 10135 KB | 9146 KB | 5.81 | 2.21 | 1.11

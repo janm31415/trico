@@ -1685,6 +1685,8 @@ int trico_read_attributes_uint64(void* a, uint64_t** attrib)
       case trico_vertex_normal_float_stream: return trico_read_vertex_normals(arch, NULL);
       case trico_vertex_normal_double_stream: return trico_read_vertex_normals_double(arch, NULL);
       case trico_triangle_normal_float_stream: return trico_read_triangle_normals(arch, NULL);
+      case trico_vertex_color_stream: return trico_read_vertex_colors(arch, NULL);
+      case trico_triangle_color_stream: return trico_read_triangle_colors(arch, NULL);
       case trico_triangle_normal_double_stream: return trico_read_triangle_normals_double(arch, NULL);
       case trico_attribute_float_stream: return trico_read_attributes_float(arch, NULL);
       case trico_attribute_double_stream: return trico_read_attributes_double(arch, NULL);

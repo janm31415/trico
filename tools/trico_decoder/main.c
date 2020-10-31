@@ -226,6 +226,7 @@ int main(int argc, const char** argv)
   if (fl != size)
     {
     printf("There was an error reading file %s\n", filename);
+    fclose(f);
     return -1;
     }
   fclose(f);
@@ -264,6 +265,14 @@ int main(int argc, const char** argv)
       if (!trico_read_vertices(arch, &vertices))
         {
         free(vertices);
+        free(triangle_normals);
+        free(vertex_normals);
+        free(vertex_colors);
+        free(texcoords);
+        free(tria_indices);
+        free(attributes);
+        trico_close_archive(arch);
+        free(buffer);
         printf("Something went wrong when reading the vertices\n");
         return -1;
         }
@@ -275,7 +284,15 @@ int main(int argc, const char** argv)
       triangle_normals = (float*)malloc(nr_of_triangle_normals * 3 * sizeof(float));
       if (!trico_read_triangle_normals(arch, &triangle_normals))
         {
+        free(vertices);
         free(triangle_normals);
+        free(vertex_normals);
+        free(vertex_colors);
+        free(texcoords);
+        free(tria_indices);
+        free(attributes);
+        trico_close_archive(arch);
+        free(buffer);
         printf("Something went wrong when reading the triangle normals\n");
         return -1;
         }
@@ -287,7 +304,15 @@ int main(int argc, const char** argv)
       vertex_normals = (float*)malloc(nr_of_vertex_normals * 3 * sizeof(float));
       if (!trico_read_vertex_normals(arch, &vertex_normals))
         {
+        free(vertices);
+        free(triangle_normals);
         free(vertex_normals);
+        free(vertex_colors);
+        free(texcoords);
+        free(tria_indices);
+        free(attributes);
+        trico_close_archive(arch);
+        free(buffer);
         printf("Something went wrong when reading the vertex normals\n");
         return -1;
         }
@@ -299,7 +324,15 @@ int main(int argc, const char** argv)
       vertex_colors = (uint32_t*)malloc(nr_of_vertex_colors * sizeof(uint32_t));
       if (!trico_read_vertex_colors(arch, &vertex_colors))
         {
+        free(vertices);
+        free(triangle_normals);
+        free(vertex_normals);
         free(vertex_colors);
+        free(texcoords);
+        free(tria_indices);
+        free(attributes);
+        trico_close_archive(arch);
+        free(buffer);
         printf("Something went wrong when reading the vertex colors\n");
         return -1;
         }
@@ -311,7 +344,15 @@ int main(int argc, const char** argv)
       tria_indices = (uint32_t*)malloc(nr_of_triangles * 3 * sizeof(uint32_t));
       if (!trico_read_triangles(arch, &tria_indices))
         {
+        free(vertices);
+        free(triangle_normals);
+        free(vertex_normals);
+        free(vertex_colors);
+        free(texcoords);
         free(tria_indices);
+        free(attributes);
+        trico_close_archive(arch);
+        free(buffer);
         printf("Something went wrong when reading the triangles\n");
         return -1;
         }
@@ -323,7 +364,15 @@ int main(int argc, const char** argv)
       attributes = (uint16_t*)malloc(nr_of_attributes * sizeof(uint16_t));
       if (!trico_read_attributes_uint16(arch, &attributes))
         {
+        free(vertices);
+        free(triangle_normals);
+        free(vertex_normals);
+        free(vertex_colors);
+        free(texcoords);
+        free(tria_indices);
         free(attributes);
+        trico_close_archive(arch);
+        free(buffer);
         printf("Something went wrong when reading the attributes\n");
         return -1;
         }
@@ -335,7 +384,15 @@ int main(int argc, const char** argv)
       texcoords = (float*)malloc(nr_of_texcoords * 2 * sizeof(float));
       if (!trico_read_uv_per_triangle(arch, &texcoords))
         {
+        free(vertices);
+        free(triangle_normals);
+        free(vertex_normals);
+        free(vertex_colors);
         free(texcoords);
+        free(tria_indices);
+        free(attributes);
+        trico_close_archive(arch);
+        free(buffer);
         printf("Something went wrong when reading the texture coordinates\n");
         return -1;
         }
